@@ -47,7 +47,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20260928-1790618456-local";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20260928-1790620249-ba2989e";
 let currentBasemap = "esri";
 let currentAreaId = null;
 let flyoverTimer = null;
