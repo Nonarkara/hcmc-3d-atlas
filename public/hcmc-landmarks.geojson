@@ -1,0 +1,488 @@
+{
+  "type": "FeatureCollection",
+  "name": "hcmc-hero-landmarks",
+  "generator": "hcmc-hero-landmarks.geojson (BKKx-Atlas lineage) — curated 3D extrusions for Saigon icons",
+  "license": "ODbL-1.0 (footprints derived from OSM + published plans) · heights from public sources",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "bitexco-financial-tower",
+        "name": "Bitexco Financial Tower",
+        "nameVi": "Tháp Tài chính Bitexco",
+        "height": 262,
+        "levels": 68,
+        "year": 2010,
+        "category": "tower",
+        "style": "helipad-tower",
+        "description": "68-storey tower with the iconic 50m helipad cantilever. Tallest building in HCMC until Landmark 81 surpassed it in 2018."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70198, 10.77149],
+          [106.70243, 10.77146],
+          [106.70247, 10.77213],
+          [106.70202, 10.77216],
+          [106.70198, 10.77149]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "landmark-81",
+        "name": "Landmark 81",
+        "nameVi": "Landmark 81",
+        "height": 461,
+        "levels": 81,
+        "year": 2018,
+        "category": "tower",
+        "style": "supertall",
+        "description": "Tallest building in Vietnam and 17th-tallest in the world. Mixed-use skyscraper in the Vinhomes Central Park complex."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.72182, 10.79512],
+          [106.72252, 10.79512],
+          [106.72252, 10.79572],
+          [106.72182, 10.79572],
+          [106.72182, 10.79512]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vietcombank-tower",
+        "name": "Vietcombank Tower",
+        "nameVi": "Tháp Vietcombank",
+        "height": 205,
+        "levels": 35,
+        "year": 2015,
+        "category": "tower",
+        "style": "modernist",
+        "description": "Tiered modernist office tower, one of the iconic 1980s-90s Saigon skyline towers."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70103, 10.77503],
+          [106.70143, 10.77503],
+          [106.70143, 10.77538],
+          [106.70103, 10.77538],
+          [106.70103, 10.77503]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "saigon-centre-tower-2",
+        "name": "Saigon Centre Tower 2",
+        "nameVi": "Saigon Centre Tower 2",
+        "height": 193,
+        "levels": 55,
+        "year": 1996,
+        "category": "tower",
+        "style": "modernist",
+        "description": "District 1 commercial tower by Gammon/Dragages. Twin of Saigon Centre Tower 1 (193m)."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70072, 10.77303],
+          [106.70108, 10.77303],
+          [106.70108, 10.77340],
+          [106.70072, 10.77340],
+          [106.70072, 10.77303]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vincom-landmark-plus",
+        "name": "Vincom Landmark Plus",
+        "nameVi": "Vincom Landmark Plus",
+        "height": 152,
+        "levels": 36,
+        "year": 2015,
+        "category": "tower",
+        "style": "modernist",
+        "description": "Mixed-use tower above Vincom Centre Dong Khoi shopping mall."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70265, 10.77490],
+          [106.70305, 10.77490],
+          [106.70305, 10.77530],
+          [106.70265, 10.77530],
+          [106.70265, 10.77490]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "sunwah-pearl",
+        "name": "Sunwah Pearl",
+        "nameVi": "Sunwah Pearl",
+        "height": 175,
+        "levels": 40,
+        "year": 2019,
+        "category": "tower",
+        "style": "modernist",
+        "description": "Mixed-use complex on Nguyen Hue Boulevard with three towers."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70460, 10.77418],
+          [106.70495, 10.77418],
+          [106.70495, 10.77455],
+          [106.70460, 10.77455],
+          [106.70460, 10.77418]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "saigon-trade-center",
+        "name": "Saigon Trade Center",
+        "nameVi": "Trung tâm Thương mại Sài Gòn",
+        "height": 160,
+        "levels": 33,
+        "year": 1995,
+        "category": "tower",
+        "style": "modernist",
+        "description": "Mixed-use office + retail complex at District 1 corner."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70155, 10.77245],
+          [106.70192, 10.77245],
+          [106.70192, 10.77282],
+          [106.70155, 10.77282],
+          [106.70155, 10.77245]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "times-square",
+        "name": "Times Square",
+        "nameVi": "Times Square HCMC",
+        "height": 164,
+        "levels": 36,
+        "year": 2009,
+        "category": "tower",
+        "style": "modernist",
+        "description": "Twin 36-storey office towers with attached four-storey retail podium."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70435, 10.77680],
+          [106.70478, 10.77680],
+          [106.70478, 10.77718],
+          [106.70435, 10.77718],
+          [106.70435, 10.77680]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "the-81-premier",
+        "name": "The 81 Premier",
+        "nameVi": "The 81 Premier",
+        "height": 220,
+        "levels": 48,
+        "year": 2018,
+        "category": "tower",
+        "style": "supertall",
+        "description": "Adjacent to Landmark 81, residential supertall in the Vinhomes Central Park complex."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.72125, 10.79455],
+          [106.72165, 10.79455],
+          [106.72165, 10.79495],
+          [106.72125, 10.79495],
+          [106.72125, 10.79455]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "vinhomes-golden-river",
+        "name": "Vinhomes Golden River",
+        "nameVi": "Vinhomes Golden River",
+        "height": 180,
+        "levels": 42,
+        "year": 2017,
+        "category": "tower",
+        "style": "modernist",
+        "description": "Luxury riverside complex with three towers along Ton Duc Thang."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70418, 10.76885],
+          [106.70458, 10.76885],
+          [106.70458, 10.76925],
+          [106.70418, 10.76925],
+          [106.70418, 10.76885]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ifc-one-saigon",
+        "name": "IFC One Saigon",
+        "nameVi": "IFC One Saigon",
+        "height": 195,
+        "levels": 45,
+        "year": 2020,
+        "category": "tower",
+        "style": "modernist",
+        "description": "Grade A office tower at Hai Ba Trung — Pasteur corner."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.69943, 10.77680],
+          [106.69985, 10.77680],
+          [106.69985, 10.77720],
+          [106.69943, 10.77720],
+          [106.69943, 10.77680]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "saigon-centre-tower-1",
+        "name": "Saigon Centre Tower 1",
+        "nameVi": "Saigon Centre Tower 1",
+        "height": 164,
+        "levels": 45,
+        "year": 1996,
+        "category": "tower",
+        "style": "modernist",
+        "description": "Twin of Saigon Centre Tower 2 — part of the Gammon Saigon Centre complex."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70035, 10.77305],
+          [106.70070, 10.77305],
+          [106.70070, 10.77340],
+          [106.70035, 10.77340],
+          [106.70035, 10.77305]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "notre-dame-cathedral",
+        "name": "Notre-Dame Cathedral Basilica of Saigon",
+        "nameVi": "Nhà thờ Đức Bà Sài Gòn",
+        "height": 36,
+        "levels": 1,
+        "year": 1880,
+        "category": "civic",
+        "style": "neo-roman",
+        "description": "Twin 40m-bell-tower neo-Romanesque basilica, built with red brick from Toulouse. The architectural heart of French-colonial Saigon."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.69934, 10.77978],
+          [106.70004, 10.77978],
+          [106.70004, 10.78035],
+          [106.69934, 10.78035],
+          [106.69934, 10.77978]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "central-post-office",
+        "name": "Saigon Central Post Office",
+        "nameVi": "Bưu điện Trung tâm Sài Gòn",
+        "height": 32,
+        "levels": 2,
+        "year": 1891,
+        "category": "civic",
+        "style": "french-colonial",
+        "description": "Designed by Gustave Eiffel's atelier. Iconic yellow facade with arched windows and a central clock tower."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70015, 10.77985],
+          [106.70085, 10.77980],
+          [106.70095, 10.78040],
+          [106.70018, 10.78048],
+          [106.70015, 10.77985]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "independence-palace",
+        "name": "Reunification Palace",
+        "nameVi": "Dinh Độc Lập",
+        "height": 26,
+        "levels": 4,
+        "year": 1966,
+        "category": "civic",
+        "style": "modernist",
+        "description": "Modernist palace with a rooftop helicopter pad. The site of the 1975 fall of Saigon and the end of the Vietnam War."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.69588, 10.77698],
+          [106.69685, 10.77695],
+          [106.69695, 10.77760],
+          [106.69598, 10.77763],
+          [106.69588, 10.77698]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "hcmc-city-hall",
+        "name": "Ho Chi Minh City Hall",
+        "nameVi": "Ủy ban Nhân dân TP.HCM",
+        "height": 32,
+        "levels": 4,
+        "year": 1908,
+        "category": "civic",
+        "style": "french-colonial",
+        "description": "Iconic French-colonial municipal building with a 30m central clock tower, two symmetrical wings, and a wide front lawn."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70178, 10.77630],
+          [106.70255, 10.77630],
+          [106.70255, 10.77690],
+          [106.70178, 10.77690],
+          [106.70178, 10.77630]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ben-thanh-market",
+        "name": "Ben Thanh Market",
+        "nameVi": "Chợ Bến Thành",
+        "height": 18,
+        "levels": 2,
+        "year": 1914,
+        "category": "civic",
+        "style": "french-colonial",
+        "description": "Saigon's central market, founded by the French in 1914. Iconic four-gate iron-and-brick structure."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.69823, 10.77200],
+          [106.69888, 10.77200],
+          [106.69888, 10.77265],
+          [106.69823, 10.77265],
+          [106.69823, 10.77200]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "hcmc-museum",
+        "name": "Ho Chi Minh Museum",
+        "nameVi": "Bảo tàng Hồ Chí Minh",
+        "height": 22,
+        "levels": 2,
+        "year": 1978,
+        "category": "civic",
+        "style": "modernist",
+        "description": "Modernist white-concrete museum dedicated to Ho Chi Minh. Cantilevered second floor with a ramp walkway."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.69665, 10.77805],
+          [106.69745, 10.77805],
+          [106.69745, 10.77865],
+          [106.69665, 10.77865],
+          [106.69665, 10.77805]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "museum-of-fine-arts",
+        "name": "Ho Chi Minh City Museum of Fine Arts",
+        "nameVi": "Bảo tàng Mỹ thuật TP.HCM",
+        "height": 18,
+        "levels": 2,
+        "year": 1935,
+        "category": "civic",
+        "style": "french-colonial",
+        "description": "Art deco villa that housed the Fine Arts Museum, one of the largest modern art collections in Vietnam."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.69835, 10.76943],
+          [106.69918, 10.76943],
+          [106.69918, 10.77010],
+          [106.69835, 10.77010],
+          [106.69835, 10.76943]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "saigon-zoo",
+        "name": "Saigon Zoo and Botanical Gardens",
+        "nameVi": "Thảo Cầm Viên Sài Gòn",
+        "height": 14,
+        "levels": 1,
+        "year": 1865,
+        "category": "civic",
+        "style": "french-colonial",
+        "description": "Vietnam's oldest zoo, founded by the French in 1865. Tropical botanical gardens with rare native and colonial-era species."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [106.70560, 10.78245],
+          [106.70845, 10.78245],
+          [106.70845, 10.78420],
+          [106.70560, 10.78420],
+          [106.70560, 10.78245]
+        ]]
+      }
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HCMCx 3D Atlas -- Hồ Chí Minh City block by block</title>
+  <meta name="description" content="Live 3D atlas of Ho Chi Minh City. Every building in OpenStreetMap, the waterways, Metro Line 1, landmarks, and live sensors -- all extruded, all clickable." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <!-- Preload the PMTiles archives so MapLibre starts the Range fetch before
+       app.js evaluates. Cuts a perceptible beat off the first 3D extrusion
+       appearing on a cold load. -->
+  <link rel="preload" as="fetch" href="/hcmc-buildings.pmtiles" crossorigin />
+  <link rel="preload" as="fetch" href="/hcmc-waterways.pmtiles" crossorigin />
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css?v=hcmc-atlas-20260928-1790618456-local" />
+</head>
+<body data-surface="hcmc-dashboard">
+  <main class="atlas-page">
+    <header class="atlas-header">
+      <div class="atlas-header-meta">
+        <span class="atlas-eyebrow">3D Atlas -- HCMC -- 107 k OSM buildings</span>
+        <h1 class="atlas-title">
+          <span class="atlas-title-desk">Ho Chi Minh City, live, block by block</span>
+          <span class="atlas-title-phone">TP.HCM -- live 3D atlas</span>
+        </h1>
+        <p class="atlas-kicker">
+          Esri satellite + 107 143 building extrusions + waterways + Metro Line 1 + VNTT sensors.
+          Click any building for height and OSM ID; use the flyover to tour the governor corridors.
+        </p>
+      </div>
+      <nav class="atlas-header-nav" aria-label="Atlas navigation">
+        <a href="#atlas-areas">Quick jump</a>
+        <a href="#atlas-inspect">Inspect</a>
+        <a href="https://github.com/Nonarkara/hcmc-3d-atlas" target="_blank" rel="noopener">Source</a>
+        <a href="https://hcmc.nonarkara.org" class="atlas-nav-sibling" title="The HCMC war-room dashboard">War room</a>
+      </nav>
+    </header>
+
+    <div class="atlas-map-wrap">
+      <div id="atlas-map" class="atlas-map" aria-label="3D map of Ho Chi Minh City"></div>
+
+      <div id="atlas-map-loading" class="atlas-map-loading">
+        <div class="atlas-map-loading-inner">
+          <span class="atlas-map-loading-glyph">Hx</span>
+          <p class="atlas-map-loading-line">HCMCx 3D atlas loading</p>
+          <p class="atlas-map-loading-sub">107 k OSM buildings - 2 800 waterways - 14 metro stations</p>
+        </div>
+      </div>
+
+      <!-- Layer toggle rail (top-left, inside map) -->
+      <aside class="atlas-layers" aria-label="Map layers">
+        <p class="atlas-eyebrow">Layers</p>
+        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="hcmc-buildings">
+          <span class="atlas-toggle-swatch atlas-toggle-swatch--buildings"></span>
+          <span>3D buildings</span>
+        </button>
+        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="waterways-line">
+          <span class="atlas-toggle-swatch atlas-toggle-swatch--water"></span>
+          <span>Waterways</span>
+        </button>
+        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="metro-line">
+          <span class="atlas-toggle-swatch atlas-toggle-swatch--metro"></span>
+          <span>Metro Line 1</span>
+        </button>
+        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="metro-stations">
+          <span class="atlas-toggle-swatch atlas-toggle-swatch--station"></span>
+          <span>Metro stations</span>
+        </button>
+        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="bus-stops">
+          <span class="atlas-toggle-swatch atlas-toggle-swatch--bus"></span>
+          <span id="atlas-bus-label">Buses</span>
+        </button>
+        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="hcmc-landmarks-3d">
+          <span class="atlas-toggle-swatch atlas-toggle-swatch--poi"></span>
+          <span>Hero landmarks</span>
+        </button>
+        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="civic-pois">
+          <span class="atlas-toggle-swatch atlas-toggle-swatch--poi"></span>
+          <span>Landmarks</span>
+        </button>
+        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="live-sensors">
+          <span class="atlas-toggle-swatch atlas-toggle-swatch--sensor"></span>
+          <span id="atlas-sensor-label">VNTT sensors</span>
+        </button>
+
+        <p class="atlas-eyebrow atlas-eyebrow--mt">Basemap</p>
+        <button type="button" class="atlas-basemap-btn atlas-basemap-btn--active" data-bas="esri">
+          Esri satellite
+        </button>
+      </aside>
+
+      <!-- Inspect card (right) -->
+      <aside class="atlas-inspect" id="atlas-inspect" aria-live="polite">
+        <p class="atlas-eyebrow">Inspect</p>
+        <h2 class="atlas-data-heading">Click any building</h2>
+        <p class="atlas-inspect-blurb" id="atlas-inspect-hint">
+          Hover highlights the outline; click locks the building and shows its height, levels, and OSM ID.
+        </p>
+        <div class="atlas-inspect-card" id="atlas-inspect-card" hidden>
+          <p class="atlas-inspect-coords" id="atlas-inspect-coords"></p>
+          <div class="atlas-inspect-props" id="atlas-inspect-props"></div>
+        </div>
+      </aside>
+
+      <!-- Quick-jump area grid (bottom of map) -->
+      <section class="atlas-quick" id="atlas-areas">
+        <div class="atlas-quick-head">
+          <p class="atlas-eyebrow">Quick jump</p>
+          <h2 class="atlas-quick-heading">12 places</h2>
+          <button type="button" id="atlas-flyover-btn" class="atlas-flyover-btn">Start flyover</button>
+        </div>
+        <div id="atlas-area-grid" class="atlas-area-grid" role="list" aria-label="HCMC key areas"></div>
+      </section>
+    </div>
+
+    <footer class="atlas-footer">
+      <p>
+        Sources: <strong>Esri World Imagery</strong> satellite basemap, <strong>OpenStreetMap</strong> building footprints + waterways via Overpass (107 143 buildings / 2 812 ways in the HCMC tile set), <strong>OpenFreeMap</strong> OpenMapTiles for road network, <strong>VNTT</strong> live sensors. Building heights: explicit OSM <code>height</code> / <code>levels</code> where present, otherwise procedurally inferred from building type + footprint area (hero landmarks: real published heights). Procedural heights are scaled 8x for visual readability against the satellite basemap. PMTiles archives streamed from R2 via Cloudflare Range passthrough.
+      </p>
+      <p class="atlas-footer-meta">
+        HCMCx 3D Atlas -- atlas.hcmc.nonarkara.org -- <span>CC-BY 4.0</span>
+      </p>
+    </footer>
+  </main>
+
+  <!-- MapLibre + PMTiles are loaded as UMD scripts so they attach to window.
+       Defer is required because the JS uses globals from these. -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js" defer></script>
+  <script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js" defer></script>
+  <script src="/app.js?v=hcmc-atlas-20260928-1790618456-local" defer></script>
+</body>
+</html>

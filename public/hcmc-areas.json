@@ -1,0 +1,245 @@
+{
+  "$schema": "https://hcmc-3d-atlas.nonarkara.org/schemas/hcmc-area.v1.json",
+  "name": "Ho Chi Minh City key areas",
+  "version": "2026-09-15",
+  "license": "ODbL-1.0 (derived from OpenStreetMap, VNTT, HCMC Open Data)",
+  "projection": "EPSG:4326 (lng/lat)",
+  "areas": [
+    {
+      "id": "hcmc-from-above",
+      "name": "Ho Chi Minh City from above",
+      "vietnamese": "TP. Hồ Chí Minh từ trên cao",
+      "category": "city-scale",
+      "chapter": "The whole city in 3D",
+      "description": "All of greater HCMC at once. Buildings extruded in BKKx yellow signal faded low so the road grid still reads. The whole-city view uses opacity 0.32 — the silhouette of a working city, not a solid block.",
+      "center": [106.7009, 10.775],
+      "zoom": 9.6,
+      "pitch": 30,
+      "bearing": 0,
+      "keyStats": {
+        "bboxKm": "80 × 95",
+        "scale": "city-wide",
+        "buildingsSource": "OpenStreetMap via OpenFreeMap + VNTT"
+      },
+      "tags": ["city-scale", "satellite", "all-buildings", "low-zoom"]
+    },
+    {
+      "id": "district-1-cbd",
+      "name": "District 1 — CBD",
+      "vietnamese": "Quận 1 — Trung tâm",
+      "category": "governor-corridor",
+      "chapter": "District 1 · Trung tâm thành phố",
+      "description": "The historic central business district. People's Committee, Notre Dame, Saigon Central Post Office, Bến Thành Market, Reunification Palace, Bitexco Tower. The financial and political heart of the city.",
+      "center": [106.7009, 10.775],
+      "zoom": 14.6,
+      "pitch": 60,
+      "bearing": -22,
+      "keyStats": {
+        "landmarks": 18,
+        "hotels": 24,
+        "markets": 2,
+        "malls": 6
+      },
+      "tags": ["cbd", "heritage", "political", "commercial"]
+    },
+    {
+      "id": "thu-duc-city",
+      "name": "Thủ Đức City",
+      "vietnamese": "TP. Thủ Đức",
+      "category": "governor-corridor",
+      "chapter": "Thủ Đức · Thành phố trong lòng thành phố",
+      "description": "The merged Thu Duc mega-district — Thảo Điền, An Phú, Bình Trưng, SHTP High-Tech Park. The fastest-growing knowledge economy corridor in HCMC, including metro Line 1's eastern terminus at Suối Tiên.",
+      "center": [106.7537, 10.8499],
+      "zoom": 13.4,
+      "pitch": 55,
+      "bearing": 10,
+      "keyStats": {
+        "districts": 3,
+        "shtpCampus": 1,
+        "metroTerminus": 1,
+        "techCampuses": 12
+      },
+      "tags": ["tech", "metro", "new-city", "knowledge-economy"]
+    },
+    {
+      "id": "phu-my-hung-d7",
+      "name": "Phú Mỹ Hưng · District 7",
+      "vietnamese": "Phú Mỹ Hưng · Quận 7",
+      "category": "governor-corridor",
+      "chapter": "District 7 · The new urban core",
+      "description": "The purpose-built new urban core on the south side of the Saigon River. Phú Mỹ Hưng new town, Crescent Mall, FV Hospital, RMIT South Saigon. The model for Saigon South as a self-contained district.",
+      "center": [106.7228, 10.7241],
+      "zoom": 14.0,
+      "pitch": 55,
+      "bearing": -15,
+      "keyStats": {
+        "universities": 4,
+        "hospitals": 3,
+        "malls": 2,
+        "expatPct": "~30%"
+      },
+      "tags": ["new-town", "expat", "education", "south"]
+    },
+    {
+      "id": "tan-son-nhat-corridor",
+      "name": "Tân Sơn Nhất corridor",
+      "vietnamese": "Hành lang Tân Sơn Nhất",
+      "category": "governor-corridor",
+      "chapter": "Tân Sơn Nhất · The airport spine",
+      "description": "The route from downtown to SGN airport. Cộng Hòa → Trường Sơn → the airport terminals. The single highest-stake civilian corridor in the city — a closed boulevard shuts the airport.",
+      "center": [106.6519, 10.8188],
+      "zoom": 14.0,
+      "pitch": 50,
+      "bearing": -30,
+      "keyStats": {
+        "terminals": 2,
+        "runways": 2,
+        "passengersYear": "40M+",
+        "cargoTonnesYear": "1.5M+"
+      },
+      "tags": ["airport", "corridor", "mission-critical"]
+    },
+    {
+      "id": "saigon-river-waterfront",
+      "name": "Saigon River waterfront",
+      "vietnamese": "Bờ sông Sài Gòn",
+      "category": "governor-corridor",
+      "chapter": "Saigon River · The working waterfront",
+      "description": "Both banks of the Saigon River from Bạch Đằng wharf to the Cát Lái port complex. Cargo terminals, passenger piers, Bến Nghé port. The river that gives the city its name.",
+      "center": [106.7255, 10.7690],
+      "zoom": 13.4,
+      "pitch": 50,
+      "bearing": 0,
+      "keyStats": {
+        "portQuays": 12,
+        "passengerPiers": 4,
+        "lengthKm": 25
+      },
+      "tags": ["port", "water", "industry"]
+    },
+    {
+      "id": "binh-chanh-flood-belt",
+      "name": "Bình Chánh flood belt",
+      "vietnamese": "Vành đai lũ Bình Chánh",
+      "category": "governor-corridor",
+      "chapter": "Bình Chánh · The flood belt",
+      "description": "Southwest HCMC's low-lying industrial & residential belt. The first place to flood in heavy monsoon rain, the last to drain. The indicator variable for the whole city's drainage health.",
+      "center": [106.5900, 10.6600],
+      "zoom": 12.6,
+      "pitch": 45,
+      "bearing": 5,
+      "keyStats": {
+        "floodStations": 8,
+        "canals": 14,
+        "riskZoneHa": 4200
+      },
+      "tags": ["flood", "southwest", "industrial"]
+    },
+    {
+      "id": "cho-lon-chinatown",
+      "name": "Chợ Lớn (Chinatown)",
+      "vietnamese": "Chợ Lớn",
+      "category": "district",
+      "chapter": "Chợ Lớn · The merchant quarter",
+      "description": "Vietnam's largest Chinatown. Bình Tây Market, Hà Tiên pagoda, the Tuệ Thành temple complex. A 200-year-old trade corridor that still runs the city's wholesale economy.",
+      "center": [106.6670, 10.7480],
+      "zoom": 14.6,
+      "pitch": 55,
+      "bearing": -10,
+      "keyStats": {
+        "temples": 14,
+        "markets": 6,
+        "tradingFloors": 26
+      },
+      "tags": ["chinatown", "heritage", "wholesale"]
+    },
+    {
+      "id": "vinhomes-grand-park",
+      "name": "Vinhomes Grand Park",
+      "vietnamese": "Vinhomes Grand Park",
+      "category": "district",
+      "chapter": "Vinhomes Grand Park · The bedroom suburb",
+      "description": "The largest urban masterplan in Vietnam. A planned township of 17 towers and a 36-hectare central park. The place where HCMC's population lives, even if it doesn't work there.",
+      "center": [106.8200, 10.8470],
+      "zoom": 14.4,
+      "pitch": 55,
+      "bearing": 0,
+      "keyStats": {
+        "towers": 17,
+        "centralParkHa": 36,
+        "residents": "100,000+"
+      },
+      "tags": ["residential", "masterplan", "thu-duc"]
+    },
+    {
+      "id": "cat-lai-port",
+      "name": "Cát Lái port complex",
+      "vietnamese": "Cảng Cát Lái",
+      "category": "infrastructure",
+      "chapter": "Cát Lái · The busiest cargo gate",
+      "description": "Vietnam's largest container port. The freight chokepoint for the entire south — 6M+ TEU/year. The reason highway HCMC-Long Thành-Dầu Giây exists.",
+      "center": [106.7910, 10.7620],
+      "zoom": 14.2,
+      "pitch": 55,
+      "bearing": 15,
+      "keyStats": {
+        "teuPerYear": "6M+",
+        "berths": 9,
+        "trucksPerDay": "15,000+"
+      },
+      "tags": ["port", "cargo", "logistics"]
+    },
+    {
+      "id": "can-gio-mangroves",
+      "name": "Cần Giờ mangrove biosphere",
+      "vietnamese": "Rừng ngập mặn Cần Giờ",
+      "category": "nature",
+      "chapter": "Cần Giờ · The green wall",
+      "description": "UNESCO biosphere on the city's southeast edge. Mangrove forests that survived Agent Orange to become the city's green lung. The model for a working climate-adaptation corridor.",
+      "center": [106.9500, 10.4100],
+      "zoom": 11.6,
+      "pitch": 50,
+      "bearing": 20,
+      "keyStats": {
+        "biosphereHa": 75000,
+        "mangroveHa": 38000,
+        "unescoYear": 2000
+      },
+      "tags": ["nature", "unesco", "climate"]
+    },
+    {
+      "id": "metro-line-1-route",
+      "name": "Metro Line 1 — Bến Thành ↔ Suối Tiên",
+      "vietnamese": "Tuyến Metro 1 — Bến Thành ↔ Suối Tiên",
+      "category": "infrastructure",
+      "chapter": "Metro Line 1 · The first spine",
+      "description": "HCMC's first metro line, opened 2024. 19.7 km, 14 stations, from Bến Thành Market to Suối Tiên Theme Park. The spine of the future transit network.",
+      "center": [106.7300, 10.7900],
+      "zoom": 12.6,
+      "pitch": 55,
+      "bearing": 20,
+      "keyStats": {
+        "stations": 14,
+        "lengthKm": 19.7,
+        "dailyRiders": "200K+",
+        "openedYear": 2024
+      },
+      "tags": ["metro", "transit", "infrastructure"]
+    }
+  ],
+  "categories": {
+    "city-scale": "Whole-city overview",
+    "governor-corridor": "One of the six governor corridors",
+    "district": "Specific district",
+    "infrastructure": "Single piece of city infrastructure",
+    "nature": "Natural / biosphere"
+  },
+  "corridors": [
+    { "id": "district-1", "name": "District 1 (CBD)", "vietnamese": "Quận 1 (Trung tâm)", "color": "#FF6319" },
+    { "id": "thu-duc", "name": "Thủ Đức City", "vietnamese": "TP. Thủ Đức", "color": "#0039A6" },
+    { "id": "phu-my-hung", "name": "Phú Mỹ Hưng (D7)", "vietnamese": "Phú Mỹ Hưng (Quận 7)", "color": "#00853F" },
+    { "id": "tan-son-nhat", "name": "Tân Sơn Nhất", "vietnamese": "Tân Sơn Nhất", "color": "#B933AD" },
+    { "id": "saigon-river", "name": "Saigon River", "vietnamese": "Sông Sài Gòn", "color": "#0039A6" },
+    { "id": "binh-chanh", "name": "Bình Chánh flood belt", "vietnamese": "Vành đai lũ Bình Chánh", "color": "#B933AD" }
+  ]
+}

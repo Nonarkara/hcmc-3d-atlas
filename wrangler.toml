@@ -1,0 +1,33 @@
+name = "hcmc-3d-atlas"
+main = "src/index.ts"
+compatibility_date = "2026-08-26"
+compatibility_flags = ["nodejs_compat"]
+
+# Custom domain: atlas.hcmc.nonarkara.org (or maps.hcmc.nonarkara.org as fallback).
+# Set up via Cloudflare dashboard — zone "hcmc.nonarkara.org" or "nonarkara.org".
+
+# R2 bucket for building PMTiles (432K-feature HCMC metro buildings).
+# Pre-bake with scripts/osm-buildings-to-geojson.py + generate-3d-tiles.sh
+[[r2_buckets]]
+binding = "HCMC_TILES"
+bucket_name = "hcmc-tiles"
+preview_bucket_name = "hcmc-tiles-preview"
+
+# 5-minute cron warms the dashboard feeds the atlas API actually reads.
+[triggers]
+crons = ["*/5 * * * *"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+# PMTiles needs Range passthrough for tile streaming -- serve from Worker
+# first so the /hcmc-buildings.pmtiles route can return 206 Partial Content.
+# Without this flag, [assets] intercepts the request before our handler.
+run_worker_first = true
+
+[vars]
+ATLAS_VERSION = "0.1.0"
+ATLAS_BBOX_MIN_LAT = "10.35"
+ATLAS_BBOX_MAX_LAT = "11.20"
+ATLAS_BBOX_MIN_LON = "106.30"
+ATLAS_BBOX_MAX_LON = "107.05"
