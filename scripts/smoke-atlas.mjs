@@ -64,9 +64,9 @@ async function main() {
     );
   });
 
-  await check("app.js handles loaded() race (warm + cold paths)", async () => {
-    assert.match(appJs, /mapInstance\.loaded\(\)/, "no loaded() check");
-    assert.match(appJs, /mapInstance\.once\("load"/, "no once(load) fallback");
+  await check("app.js adds layers on style.load, not after every tile", async () => {
+    assert.match(appJs, /mapInstance\.isStyleLoaded\(\)/, "no isStyleLoaded() check");
+    assert.match(appJs, /mapInstance\.once\("style\.load"/, "no style.load fallback");
   });
 
   await check("app.js adds the buildings layer (hcmc-buildings)", async () => {

@@ -896,7 +896,11 @@ async function boot() {
   setupInspect();
 
   function onMapReady() {
-    applyAllLayers();
+    try {
+      applyAllLayers();
+    } catch (e) {
+      console.error("[atlas] applyAllLayers failed", e);
+    }
     setupLayerToggles();
     setBasemap(currentBasemap);
     const params = new URLSearchParams(window.location.search);
@@ -931,15 +935,14 @@ async function boot() {
       buildingsPresent: hasBuildings,
     });
   }
-  // boot() awaits the areas fetch before getting here. By that time the
-  // map's "load" event may already have fired (Esri raster tiles arrive
-  // fast), so `once("load", ...)` would silently miss and the buildings
-  // layer would never be added. Check `loaded()` first, then attach the
-  // listener for the cold path.
-  if (mapInstance.loaded()) {
+  // Add layers when the style object exists. `loaded()` waits for every
+  // satellite tile, so a slow Esri response never reaches onMapReady and
+  // the buildings, buses, and sensor labels never appear. `isStyleLoaded`
+  // is the warm path; `style.load` is the cold path.
+  if (mapInstance.isStyleLoaded()) {
     onMapReady();
   } else {
-    mapInstance.once("load", onMapReady);
+    mapInstance.once("style.load", onMapReady);
   }
 
   const flyoverBtn = document.getElementById("atlas-flyover-btn");
