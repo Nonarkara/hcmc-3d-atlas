@@ -1,10 +1,15 @@
 name = "hcmc-3d-atlas"
+workers_dev = true
+# Same account as bkk-3d-atlas. A local deploy must not land elsewhere.
+account_id = "74ad6bf8dfaaccf82de6f0847f7d2d54"
 main = "src/index.ts"
 compatibility_date = "2026-08-26"
 compatibility_flags = ["nodejs_compat"]
 
-# Custom domain: atlas.hcmc.nonarkara.org (or maps.hcmc.nonarkara.org as fallback).
-# Set up via Cloudflare dashboard — zone "hcmc.nonarkara.org" or "nonarkara.org".
+# Custom domain. Same shape as bkk-3d-atlas: the zone has to be on this account.
+[[routes]]
+pattern = "atlas.hcmc.nonarkara.org"
+custom_domain = true
 
 # R2 bucket for building PMTiles (432K-feature HCMC metro buildings).
 # Pre-bake with scripts/osm-buildings-to-geojson.py + generate-3d-tiles.sh
