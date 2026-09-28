@@ -286,6 +286,7 @@ interface WeatherOps {
   rainfallMm?: number | null;
   windKph?: number | null;
   condition?: string;
+  status?: string;
   sourceSummary?: { mode?: string; freshness?: { observedAt?: string | null } };
   provenance?: Provenance;
 }
@@ -395,6 +396,7 @@ interface RiskReport {
     rainfallMm: number | null;
     windKph: number | null;
     mode: string;
+    status: string | null;
   };
   sensors: {
     total: number;
@@ -447,12 +449,19 @@ async function assessRisk(lng: number, lat: number, pm25Override: number | null)
   const alertCount = rows.filter((r) => sensorStatus(r) === "alert").length;
   const warningCount = rows.filter((r) => sensorStatus(r) === "warning").length;
   const floodFactor = stale ? null : Math.min(1, alertCount / 6);
-  const windKph = weather?.windKph ?? null;
+  const rainMm = typeof weather?.rainfallMm === "number" && Number.isFinite(weather.rainfallMm)
+    ? weather.rainfallMm
+    : null;
+  // 50 mm saturates the water term. Used only when the sensor feed is too old to count.
+  const rainFactor = rainMm == null ? null : Math.min(1, Math.max(0, rainMm) / 50);
+  const waterFactor = floodFactor ?? rainFactor ?? 0;
+  const waterFrom = floodFactor != null ? "sensors" : rainFactor != null ? "rainfall" : "none";
+  const windKph = typeof weather?.windKph === "number" && Number.isFinite(weather.windKph)
+    ? weather.windKph
+    : null;
   const windFactor = (windKph ?? 0) >= 25 ? 0.4 : 0;
-  const omitted = floodFactor == null ? ["flood"] : [];
-  const score = floodFactor == null
-    ? Math.round(100 * (0.4 * aqiFactor + 0.15 * windFactor) / 0.55)
-    : Math.round(100 * (0.45 * floodFactor + 0.4 * aqiFactor + 0.15 * windFactor));
+  const omitted = waterFrom === "none" ? ["flood"] : [];
+  const score = Math.round(100 * (0.45 * waterFactor + 0.4 * aqiFactor + 0.15 * windFactor));
 
   return {
     score,
@@ -461,7 +470,10 @@ async function assessRisk(lng: number, lat: number, pm25Override: number | null)
     factors: {
       floodAlerts: alertCount,
       floodFactor: floodFactor == null ? null : Math.round(floodFactor * 100) / 100,
-      floodOmitted: floodFactor == null,
+      floodOmitted: waterFrom === "none",
+      waterFrom,
+      rainfallMm: rainMm,
+      rainFactor: rainFactor == null ? null : Math.round(rainFactor * 100) / 100,
       pm25,
       pm25Overridden: overridden,
       pm25Station: station?.label ?? null,
@@ -477,6 +489,7 @@ async function assessRisk(lng: number, lat: number, pm25Override: number | null)
       rainfallMm: weather?.rainfallMm ?? null,
       windKph,
       mode: weather?.sourceSummary?.mode ?? "unknown",
+      status: weather?.status ?? null,
     },
     sensors: {
       total: rows.length,
@@ -811,7 +824,7 @@ async function handleRisk(request: Request): Promise<Response> {
     factors: risk.factors,
     sensors: risk.sensors,
     disclaimer:
-      "Civic demo score (flood × PM2.5 × wind). A stale sensor feed is omitted, not treated as all-clear. Not for insurance underwriting or official planning.",
+      "Civic demo score. Water is rainfall while the sensor feed is stale, otherwise flood alerts. PM2.5 is the nearest station. Not for insurance underwriting or official planning.",
   }, { headers: { "cache-control": `public, max-age=${RISK_CACHE_TTL_SECONDS}` } });
 }
 
