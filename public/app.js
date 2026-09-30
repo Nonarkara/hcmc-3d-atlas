@@ -45,7 +45,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20260930-1790749659-426e61d";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20260930-1790766243-3c67e2e";
 // Append a build-tag query string to the PMTiles URLs so every deploy
 // busts Cloudflare's edge cache. Without this, the first GET (which the
 // protocol handler makes without a Range header) gets cached as 200 OK
@@ -244,37 +244,67 @@ function addBuildings() {
     minzoom: 10,
     paint: {
       "fill-extrusion-color": HEIGHT_COLOR,
-      // Moderate sqrt-curve ≈ pow(h, 0.5) × 12 — chosen so an 8m tube
-      // house extrudes to 34m visual, which at corridor zoom gives a
-      // block aspect of ~6:1 (still readable as a building, not a
-      // spaghetti strand). At city-overview (zoom 11) the same 34m
-      // extrusion is just visible without breaking proportions.
-      //   8m tube house    →  34m visual
-      //   15m walk-up      →  46m
-      //   30m low-rise     →  66m
-      //   60m apartment    →  93m
-      //  100m mid-tall     → 120m
-      //  200m tall         → 170m
-      //  461m Landmark 81  → 268m  (≈ real, not 3688m like the old ×8)
-      // Single curve, no nested zoom interpolation, no risk of MapLibre
-      // rejecting the expression.
+      // BKKx-style tiered multiplier: short buildings get a big boost
+      // so they extrude visibly from city-overview; tall towers get a
+      // small boost so they stay proportional. This avoids the two
+      // failure modes we've hit (sub-pixel at low zoom, spaghetti at
+      // high zoom) by giving each tier the multiplier it needs.
+      //   <30m tube house / walk-up → 6× boost (visible blocks)
+      //   <100m low-rise / mid-rise → 4× boost (proportional)
+      //   <200m tall               → 3× boost (iconic but not absurd)
+      //   >200m tower / supertall  → 1.4× boost (≈ real, no spike)
+      //   8m tube house            →  48m visual (12:1 aspect — slim
+      //                                but readable as a building)
+      //   30m low-rise             → 120m visual
+      //   60m apartment            → 240m visual
+      //  100m mid-tall             → 300m visual
+      //  200m tall                 → 600m visual
+      //  461m Landmark 81          → 645m visual (1.4× real — no 3688m
+      //                                aberration like the old ×8)
       "fill-extrusion-height": [
-        "interpolate", ["linear"],
-        [
-          "coalesce",
-          ["get", "render_height"],
-          ["get", "height"],
-          ["*", ["coalesce", ["get", "levels"], 1], 3],
-          12,
-        ],
-        0,   0,
-        8,   34,
-        15,  46,
-        30,  66,
-        60,  93,
-        100, 120,
-        200, 170,
-        500, 268,
+        "case",
+        ["<", ["coalesce",
+                ["get", "render_height"],
+                ["get", "height"],
+                ["*", ["coalesce", ["get", "levels"], 1], 3],
+                12],
+          30],
+          ["*", ["coalesce",
+                  ["get", "render_height"],
+                  ["get", "height"],
+                  ["*", ["coalesce", ["get", "levels"], 1], 3],
+                  12],
+            6],
+        ["<", ["coalesce",
+                ["get", "render_height"],
+                ["get", "height"],
+                ["*", ["coalesce", ["get", "levels"], 1], 3],
+                12],
+          100],
+          ["*", ["coalesce",
+                  ["get", "render_height"],
+                  ["get", "height"],
+                  ["*", ["coalesce", ["get", "levels"], 1], 3],
+                  12],
+            4],
+        ["<", ["coalesce",
+                ["get", "render_height"],
+                ["get", "height"],
+                ["*", ["coalesce", ["get", "levels"], 1], 3],
+                12],
+          200],
+          ["*", ["coalesce",
+                  ["get", "render_height"],
+                  ["get", "height"],
+                  ["*", ["coalesce", ["get", "levels"], 1], 3],
+                  12],
+            3],
+        ["*", ["coalesce",
+                ["get", "render_height"],
+                ["get", "height"],
+                ["*", ["coalesce", ["get", "levels"], 1], 3],
+                12],
+          1.4],
       ],
       "fill-extrusion-base": 0,
       "fill-extrusion-opacity": BUILDING_OPACITY,
@@ -565,10 +595,10 @@ async function addHeroLandmarks() {
     },
   });
 
-  // Hero extrusion — same sqrt(0.5) × 12 curve as the residential fabric.
-  // 36m Notre-Dame → 72m, 262m Bitexco → 194m, 461m Landmark 81 →
-  // 268m. Proportional blocks, not strands; visible from city-overview
-  // AND proportional at corridor zoom.
+  // Hero extrusion — BKKx-style tiered multiplier matching the
+  // residential fabric. 36m Notre-Dame → 144m (4×), 262m Bitexco →
+  // 786m (3×), 461m Landmark 81 → 645m (1.4×). Visible from
+  // city-overview AND proportional at corridor zoom.
   mapInstance.addLayer({
     id: "hcmc-landmarks-3d",
     type: "fill-extrusion",
@@ -577,14 +607,14 @@ async function addHeroLandmarks() {
     paint: {
       "fill-extrusion-color": HERO_COLOR,
       "fill-extrusion-height": [
-        "interpolate", ["linear"],
-        ["get", "height"],
-        0,   0,
-        30,  66,
-        60,  93,
-        100, 120,
-        200, 170,
-        500, 268,
+        "case",
+        ["<", ["get", "height"], 30],
+          ["*", ["get", "height"], 6],
+        ["<", ["get", "height"], 100],
+          ["*", ["get", "height"], 4],
+        ["<", ["get", "height"], 200],
+          ["*", ["get", "height"], 3],
+        ["*", ["get", "height"], 1.4],
       ],
       "fill-extrusion-base": 0,
       "fill-extrusion-opacity": 0.95,
