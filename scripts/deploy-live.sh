@@ -17,7 +17,7 @@ echo "→ marker check: $ATLAS_HTML_MARKER"
 grep -q "$ATLAS_HTML_MARKER" public/index.html || { echo "Marker missing — abort"; exit 1; }
 
 echo "→ wrangler whoami"
-$WRANGLI_BIN whoami | head -3
+$WRANGLI_BIN whoami | sed -n 1,3p  # head -3 closed the pipe early; pipefail aborted on EPIPE
 
 echo "→ deploy"
 $WRANGLI_BIN deploy
