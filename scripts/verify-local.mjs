@@ -73,6 +73,31 @@ test("public/app.js parses as JS (basic syntax)", () => {
   if (code.includes("Stop \" + (i + 1)")) throw new Error("procedural bus stops are still in the client");
 });
 
+// Four agents "fixed" invisible buildings by inflating heights (x8, sqrt,
+// tiered 6x...). Heights are real metres; density does the visual work.
+test("building heights are real metres (no multiplier)", () => {
+  const code = readFileSync(resolve(ROOT, "public/app.js"), "utf-8");
+  if (/HEIGHT_VIS_MULT|heightVis|tiered multiplier/.test(code)) throw new Error("height multiplier is back");
+  const ext = code.match(/"fill-extrusion-height":\s*([^\n]+)/g) || [];
+  for (const line of ext) if (/\["\*"/.test(line)) throw new Error(`scaled extrusion height: ${line.trim()}`);
+  if (/fill-translate/.test(code)) throw new Error("fake drop-shadow layer is back");
+});
+
+test("landmarks use real OSM footprints with a cited height", () => {
+  const lm = JSON.parse(readFileSync(resolve(ROOT, "public/hcmc-landmarks.geojson"), "utf-8"));
+  if (lm.features.length < 10) throw new Error(`only ${lm.features.length} landmark features`);
+  for (const f of lm.features) {
+    const p = f.properties;
+    if (!p.source || !p.osm) throw new Error(`${p.name}: missing source/osm`);
+    if (!/^(way|relation)\/\d+$/.test(p.osm)) throw new Error(`${p.name}: osm ref "${p.osm}" is not an OSM element`);
+  }
+});
+
+test("index.html does not preload whole PMTiles archives", () => {
+  const html = readFileSync(resolve(ROOT, "public/index.html"), "utf-8");
+  if (/rel="preload"[^>]*\.pmtiles/.test(html)) throw new Error("preload pulls the entire archive");
+});
+
 test("src/index.ts parses + has key handlers", () => {
   const ts = readFileSync(resolve(ROOT, "src/index.ts"), "utf-8");
   if (!ts.includes("/api/atlas/areas")) throw new Error("missing /api/atlas/areas handler");

@@ -45,7 +45,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20260930-1790766243-3c67e2e";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20260930-1790791683-2c48f6d";
 // Append a build-tag query string to the PMTiles URLs so every deploy
 // busts Cloudflare's edge cache. Without this, the first GET (which the
 // protocol handler makes without a Range header) gets cached as 200 OK
@@ -143,17 +143,27 @@ mapInstance = new __maplibregl__.Map({
         attribution: "(c) Esri World Imagery",
       },
     },
-    layers: [{ id: "esri-imagery", type: "raster", source: "esri" }],
+    // Late-afternoon sun from the south-west so facades shade differently
+    // and the blocks read as volumes. Lighting, not a drop shadow.
+    light: { anchor: "map", position: [1.4, 210, 35], color: "#fff4e0", intensity: 0.45 },
+    layers: [{
+      id: "esri-imagery",
+      type: "raster",
+      source: "esri",
+      // Muted like bkk-3d-atlas so the buildings, not the imagery, carry the eye.
+      paint: { "raster-opacity": 0.8, "raster-saturation": -0.45, "raster-contrast": 0.05 },
+    }],
   },
   center: HCMC_CENTER,
   zoom: 15.4,
-  pitch: 50,
+  pitch: 60,
   bearing: -18,
   minZoom: 9,
-  maxZoom: 17,
+  maxZoom: 18,
+  renderWorldCopies: false,
   maxPitch: 70,
   hash: false,
-  attributionControl: { customAttribution: "Esri - OpenStreetMap - VNTT - OpenFreeMap" },
+  attributionControl: { customAttribution: "Heights GHSL (EC JRC) - VNTT sensors" },
 });
 
 requestAnimationFrame(function () { mapInstance.resize(); });
@@ -167,9 +177,11 @@ requestAnimationFrame(function () { mapInstance.resize(); });
 //      usable via the basemap + waterways + metro layers
 //   4. hard 4.5s timeout -- last-resort guarantee
 let loadingHidden = false;
-function hideLoadingIfReady() {
+function hideLoadingIfReady(force) {
   if (loadingHidden) return;
-  if (!mapInstance.isStyleLoaded()) return;
+  // isStyleLoaded() stays false while any one source is erroring, so the
+  // error and timeout paths force it -- a broken layer must not blank the map.
+  if (force !== true && !mapInstance.isStyleLoaded()) return;
   loadingHidden = true;
   hideLoading();
 }
@@ -180,9 +192,9 @@ mapInstance.on("error", function (e) {
   // block the loading overlay -- the user wants to interact with the rest
   // of the map even if one source is broken.
   if (e && e.error) console.warn("[atlas] tile error:", e.error.message || e.error);
-  hideLoadingIfReady();
+  hideLoadingIfReady(true);
 });
-setTimeout(hideLoadingIfReady, 4500);
+setTimeout(function () { hideLoadingIfReady(true); }, 4500);
 
 mapInstance.addControl(
   new __maplibregl__.NavigationControl({ visualizePitch: true }),
@@ -190,123 +202,68 @@ mapInstance.addControl(
 );
 mapInstance.addControl(new __maplibregl__.ScaleControl({ unit: "metric" }), "bottom-left");
 
-// ── Building color + opacity expressions ───────────────────────────────────
-// Procedural heights are baked into the PMTiles (preprocess-buildings-pmtiles
-// v2). Color follows render_height with a brown→amber→pale→white ramp so a
-// cluster of low-rise reads warm, towers stand white.
-const HEIGHT_COLOR = [
-  "interpolate", ["linear"],
-  ["coalesce", ["get", "render_height"], ["get", "height"], 0],
-  5,   "#5b2c00",  // 1 story
-  10,  "#8b3a05",  // shophouse
-  15,  "#c2410c",  // 4-story tube
-  25,  "#ea580c",  // 7-story mid
-  40,  "#f59e0b",  // mid-rise
-  70,  "#facc15",  // tall apartment
-  120, "#fef9c3",  // tower
-  220, "#ffffff",  // hero
+// ── Building height + paint ────────────────────────────────────────────────
+// Real metres, no multiplier. Same clamp as bkk-3d-atlas: heights outside
+// 1-500 m are corrupt tags and fall back to 10 m (HCMC tube-house median).
+// Density is what makes the city read in 3D, not inflated heights -- the
+// v2 PMTiles carries Overture's OSM + Microsoft + Google footprints, with
+// unmeasured buildings at their GHSL satellite cell height.
+// Properties from scripts/bake-buildings.py: h, b, hs, src, cls, name.
+const HEIGHT_RAW = ["to-number", ["coalesce", ["get", "h"], ["get", "render_height"], ["get", "height"]], 0];
+const HEIGHT_GET = ["case", ["all", [">=", HEIGHT_RAW, 1], ["<=", HEIGHT_RAW, 500]], HEIGHT_RAW, 10];
+// Base must stay strictly below height -- base >= height makes MapLibre
+// emit degenerate roof triangles that read as sawteeth.
+const BASE_RAW = ["to-number", ["coalesce", ["get", "b"], ["get", "render_min_height"], ["get", "min_height"]], 0];
+const BASE_GET = ["case", [">=", BASE_RAW, HEIGHT_GET], 0, ["max", 0, BASE_RAW]];
+
+// One neutral body; height only lifts the value a little so towers catch
+// light. The single amber belongs to landmarks and selection.
+const BUILDING_COLOR = [
+  "interpolate", ["linear"], HEIGHT_GET,
+  6,   "#b9b2a4",
+  20,  "#d6cfbf",
+  60,  "#e8e2d4",
+  150, "#f4f0e6",
 ];
 
-const BUILDING_OPACITY = [
-  "interpolate", ["linear"], ["zoom"],
-  10, 0.55,
-  11, 0.78,
-  12, 0.88,
-  13, 0.94,
-  14, 0.96,
-  16, 0.99,
-];
+// Opacity hits 1.0 by street zoom -- translucent fill-extrusion z-fights
+// into glittery roof shards on Chrome/macOS.
+const BUILDING_OPACITY = ["interpolate", ["linear"], ["zoom"], 11, 0.6, 13, 0.88, 14.5, 1];
 
-// ── Layer builders ──────────────────────────────────────────────────────────
-// Visual height compression: real HCMC tube-house heights (8-15m) are invisible
-// at zoom 13-15 against a satellite basemap, but a linear 8x multiplier makes
-// Landmark 81 (461m × 8 = 3688m) absurdly tall. Compress the curve with
-// pow(height, 0.6) × 6 — a 12m tube house reads as 24m (visible against the
-// satellite), a 60m apartment reads as 78m, and a 262m tower reads as 196m.
-// Ratios stay true (the tower is still 8× the tube house) without breaking
-// the skyline. Inspect still shows the real render_height in the popup.
-function heightVis(h) {
-  if (!Number.isFinite(h) || h <= 0) return 0;
-  return Math.pow(h, 0.6) * 6;
-}
+const HEIGHT_SOURCE_LABEL = {
+  measured: "measured (OSM / survey)",
+  floors: "floor count x 3.3 m",
+  satellite: "satellite, 100 m cell average (GHSL)",
+  estimated: "estimated from building type",
+};
+
+const FOOTPRINT_SOURCE_LABEL = {
+  osm: "OpenStreetMap",
+  ms: "Microsoft ML (satellite)",
+  google: "Google Open Buildings (satellite)",
+};
 
 function addBuildings() {
   mapInstance.addSource("hcmc-buildings-src", {
     type: "vector",
     url: "pmtiles://" + PMTILES_BUILDINGS,
-    attribution: "(c) OpenStreetMap contributors",
+    maxzoom: 15,
+    attribution: "(c) OpenStreetMap, Microsoft, Google via Overture Maps",
   });
   mapInstance.addLayer({
     id: "hcmc-buildings",
     type: "fill-extrusion",
     source: "hcmc-buildings-src",
     "source-layer": "buildings",
-    minzoom: 10,
+    minzoom: 12,
     paint: {
-      "fill-extrusion-color": HEIGHT_COLOR,
-      // BKKx-style tiered multiplier: short buildings get a big boost
-      // so they extrude visibly from city-overview; tall towers get a
-      // small boost so they stay proportional. This avoids the two
-      // failure modes we've hit (sub-pixel at low zoom, spaghetti at
-      // high zoom) by giving each tier the multiplier it needs.
-      //   <30m tube house / walk-up → 6× boost (visible blocks)
-      //   <100m low-rise / mid-rise → 4× boost (proportional)
-      //   <200m tall               → 3× boost (iconic but not absurd)
-      //   >200m tower / supertall  → 1.4× boost (≈ real, no spike)
-      //   8m tube house            →  48m visual (12:1 aspect — slim
-      //                                but readable as a building)
-      //   30m low-rise             → 120m visual
-      //   60m apartment            → 240m visual
-      //  100m mid-tall             → 300m visual
-      //  200m tall                 → 600m visual
-      //  461m Landmark 81          → 645m visual (1.4× real — no 3688m
-      //                                aberration like the old ×8)
-      "fill-extrusion-height": [
+      "fill-extrusion-color": [
         "case",
-        ["<", ["coalesce",
-                ["get", "render_height"],
-                ["get", "height"],
-                ["*", ["coalesce", ["get", "levels"], 1], 3],
-                12],
-          30],
-          ["*", ["coalesce",
-                  ["get", "render_height"],
-                  ["get", "height"],
-                  ["*", ["coalesce", ["get", "levels"], 1], 3],
-                  12],
-            6],
-        ["<", ["coalesce",
-                ["get", "render_height"],
-                ["get", "height"],
-                ["*", ["coalesce", ["get", "levels"], 1], 3],
-                12],
-          100],
-          ["*", ["coalesce",
-                  ["get", "render_height"],
-                  ["get", "height"],
-                  ["*", ["coalesce", ["get", "levels"], 1], 3],
-                  12],
-            4],
-        ["<", ["coalesce",
-                ["get", "render_height"],
-                ["get", "height"],
-                ["*", ["coalesce", ["get", "levels"], 1], 3],
-                12],
-          200],
-          ["*", ["coalesce",
-                  ["get", "render_height"],
-                  ["get", "height"],
-                  ["*", ["coalesce", ["get", "levels"], 1], 3],
-                  12],
-            3],
-        ["*", ["coalesce",
-                ["get", "render_height"],
-                ["get", "height"],
-                ["*", ["coalesce", ["get", "levels"], 1], 3],
-                12],
-          1.4],
+        ["boolean", ["feature-state", "selected"], false], "#f59e0b",
+        BUILDING_COLOR,
       ],
-      "fill-extrusion-base": 0,
+      "fill-extrusion-height": HEIGHT_GET,
+      "fill-extrusion-base": BASE_GET,
       "fill-extrusion-opacity": BUILDING_OPACITY,
       "fill-extrusion-vertical-gradient": true,
     },
@@ -571,53 +528,22 @@ async function addHeroLandmarks() {
   mapInstance.addSource("hcmc-landmarks-src", {
     type: "geojson",
     data: { type: "FeatureCollection", features: features },
-    attribution: "(c) OpenStreetMap + curated hero heights",
+    attribution: "Landmarks (c) OpenStreetMap",
   });
 
-  // Tower-style (cat=tower) gets bright white; civic gets warm gold.
-  const HERO_COLOR = [
-    "match",
-    ["get", "category"],
-    "tower", "#fef9c3",
-    "civic", "#fbbf24",
-    "#fef9c3",
-  ];
-
-  // Drop shadow on the ground so towers lift visually.
-  mapInstance.addLayer({
-    id: "hcmc-landmarks-shadow",
-    type: "fill",
-    source: "hcmc-landmarks-src",
-    paint: {
-      "fill-color": "#000000",
-      "fill-opacity": 0.32,
-      "fill-translate": [0, 4],
-    },
-  });
-
-  // Hero extrusion — BKKx-style tiered multiplier matching the
-  // residential fabric. 36m Notre-Dame → 144m (4×), 262m Bitexco →
-  // 786m (3×), 461m Landmark 81 → 645m (1.4×). Visible from
-  // city-overview AND proportional at corridor zoom.
+  // Landmarks carry the one accent. Real footprints from OSM, published
+  // heights with a cited source (scripts/curate-landmarks.py); parts stack
+  // via base_height so towers get their podium + shaft silhouette.
   mapInstance.addLayer({
     id: "hcmc-landmarks-3d",
     type: "fill-extrusion",
     source: "hcmc-landmarks-src",
     minzoom: 11,
     paint: {
-      "fill-extrusion-color": HERO_COLOR,
-      "fill-extrusion-height": [
-        "case",
-        ["<", ["get", "height"], 30],
-          ["*", ["get", "height"], 6],
-        ["<", ["get", "height"], 100],
-          ["*", ["get", "height"], 4],
-        ["<", ["get", "height"], 200],
-          ["*", ["get", "height"], 3],
-        ["*", ["get", "height"], 1.4],
-      ],
-      "fill-extrusion-base": 0,
-      "fill-extrusion-opacity": 0.95,
+      "fill-extrusion-color": ["match", ["get", "category"], "civic", "#e0a33a", "#f59e0b"],
+      "fill-extrusion-height": ["coalesce", ["get", "height"], 12],
+      "fill-extrusion-base": ["coalesce", ["get", "base_height"], 0],
+      "fill-extrusion-opacity": 1,
       "fill-extrusion-vertical-gradient": true,
     },
   });
@@ -628,9 +554,9 @@ async function addHeroLandmarks() {
     type: "line",
     source: "hcmc-landmarks-src",
     paint: {
-      "line-color": "#fef9c3",
-      "line-width": 1.2,
-      "line-opacity": 0.6,
+      "line-color": "#f59e0b",
+      "line-width": 1,
+      "line-opacity": 0.5,
     },
   });
 
@@ -640,6 +566,7 @@ async function addHeroLandmarks() {
     type: "symbol",
     source: "hcmc-landmarks-src",
     minzoom: 13.5,
+    filter: ["!=", ["get", "part"], true], // one label per landmark, not per part
     layout: {
       "text-field": ["get", "name"],
       "text-size": [
@@ -701,6 +628,11 @@ function applyAllLayers() {
   addBusStops();
   addCivicPOIs();
   addLiveSensors();
+  // Ground lines go under the extrusions so towers occlude them, instead of
+  // the river and the metro line painting across building faces.
+  ["waterways-line", "metro-line"].forEach(function (id) {
+    if (mapInstance.getLayer(id)) mapInstance.moveLayer(id, "hcmc-buildings");
+  });
 }
 
 // ── Live data fetchers (proxied via the dashboard Worker) ─────────────────
@@ -878,9 +810,9 @@ function setupInspect() {
     const f = e.features && e.features[0];
     if (!f) return;
     const props = f.properties || {};
-    const h = props.render_height || props.height || 0;
-    const lv = props.levels || null;
-    const bldg = props.building || "yes";
+    const h = Number(props.h || props.render_height || props.height || 0);
+    const hs = props.hs || null;
+    const bldg = props.cls || props.building || "building";
     const card = document.getElementById("atlas-inspect-card");
     const hint = document.getElementById("atlas-inspect-hint");
     const coords = document.getElementById("atlas-inspect-coords");
@@ -892,11 +824,13 @@ function setupInspect() {
     propsEl.innerHTML =
       '<div class="atlas-inspect-row"><span>Type</span><strong>' + escapeHtml(bldg) + "</strong></div>" +
       '<div class="atlas-inspect-row"><span>Height</span><strong>' + escapeHtml(h ? h.toFixed(1) + " m" : "unknown") + "</strong></div>" +
-      (lv ? '<div class="atlas-inspect-row"><span>Levels</span><strong>' + escapeHtml(lv) + "</strong></div>" : "") +
-      '<div class="atlas-inspect-row"><span>OSM ID</span><strong>' + escapeHtml(props.id || "n/a") + "</strong></div>";
+      (hs ? '<div class="atlas-inspect-row"><span>Height from</span><strong>' + escapeHtml(HEIGHT_SOURCE_LABEL[hs] || hs) + "</strong></div>" : "") +
+      (props.name ? '<div class="atlas-inspect-row"><span>Name</span><strong>' + escapeHtml(props.name) + "</strong></div>" : "") +
+      '<div class="atlas-inspect-row"><span>Footprint</span><strong>' + escapeHtml(FOOTPRINT_SOURCE_LABEL[props.src] || props.src || "OpenStreetMap") + "</strong></div>";
 
     if (hint) hint.style.display = "none";
     card.hidden = false;
+    document.getElementById("atlas-inspect").hidden = false;
 
     if (inspectFeature) {
       mapInstance.setFeatureState({ source: "hcmc-buildings-src", id: inspectFeature.id }, { selected: false });
@@ -910,6 +844,7 @@ function setupInspect() {
     if (hits && hits.length) return;
     const card = document.getElementById("atlas-inspect-card");
     if (card) card.hidden = true;
+    document.getElementById("atlas-inspect").hidden = true;
     if (inspectFeature) {
       mapInstance.setFeatureState({ source: "hcmc-buildings-src", id: inspectFeature.id }, { selected: false });
       inspectFeature = null;

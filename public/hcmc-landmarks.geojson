@@ -1,488 +1,1878 @@
 {
-  "type": "FeatureCollection",
-  "name": "hcmc-hero-landmarks",
-  "generator": "hcmc-hero-landmarks.geojson (BKKx-Atlas lineage) — curated 3D extrusions for Saigon icons",
-  "license": "ODbL-1.0 (footprints derived from OSM + published plans) · heights from public sources",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "bitexco-financial-tower",
-        "name": "Bitexco Financial Tower",
-        "nameVi": "Tháp Tài chính Bitexco",
-        "height": 262,
-        "levels": 68,
-        "year": 2010,
-        "category": "tower",
-        "style": "helipad-tower",
-        "description": "68-storey tower with the iconic 50m helipad cantilever. Tallest building in HCMC until Landmark 81 surpassed it in 2018."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70198, 10.77149],
-          [106.70243, 10.77146],
-          [106.70247, 10.77213],
-          [106.70202, 10.77216],
-          [106.70198, 10.77149]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "landmark-81",
-        "name": "Landmark 81",
-        "nameVi": "Landmark 81",
-        "height": 461,
-        "levels": 81,
-        "year": 2018,
-        "category": "tower",
-        "style": "supertall",
-        "description": "Tallest building in Vietnam and 17th-tallest in the world. Mixed-use skyscraper in the Vinhomes Central Park complex."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.72182, 10.79512],
-          [106.72252, 10.79512],
-          [106.72252, 10.79572],
-          [106.72182, 10.79572],
-          [106.72182, 10.79512]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "vietcombank-tower",
-        "name": "Vietcombank Tower",
-        "nameVi": "Tháp Vietcombank",
-        "height": 205,
-        "levels": 35,
-        "year": 2015,
-        "category": "tower",
-        "style": "modernist",
-        "description": "Tiered modernist office tower, one of the iconic 1980s-90s Saigon skyline towers."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70103, 10.77503],
-          [106.70143, 10.77503],
-          [106.70143, 10.77538],
-          [106.70103, 10.77538],
-          [106.70103, 10.77503]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "saigon-centre-tower-2",
-        "name": "Saigon Centre Tower 2",
-        "nameVi": "Saigon Centre Tower 2",
-        "height": 193,
-        "levels": 55,
-        "year": 1996,
-        "category": "tower",
-        "style": "modernist",
-        "description": "District 1 commercial tower by Gammon/Dragages. Twin of Saigon Centre Tower 1 (193m)."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70072, 10.77303],
-          [106.70108, 10.77303],
-          [106.70108, 10.77340],
-          [106.70072, 10.77340],
-          [106.70072, 10.77303]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "vincom-landmark-plus",
-        "name": "Vincom Landmark Plus",
-        "nameVi": "Vincom Landmark Plus",
-        "height": 152,
-        "levels": 36,
-        "year": 2015,
-        "category": "tower",
-        "style": "modernist",
-        "description": "Mixed-use tower above Vincom Centre Dong Khoi shopping mall."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70265, 10.77490],
-          [106.70305, 10.77490],
-          [106.70305, 10.77530],
-          [106.70265, 10.77530],
-          [106.70265, 10.77490]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "sunwah-pearl",
-        "name": "Sunwah Pearl",
-        "nameVi": "Sunwah Pearl",
-        "height": 175,
-        "levels": 40,
-        "year": 2019,
-        "category": "tower",
-        "style": "modernist",
-        "description": "Mixed-use complex on Nguyen Hue Boulevard with three towers."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70460, 10.77418],
-          [106.70495, 10.77418],
-          [106.70495, 10.77455],
-          [106.70460, 10.77455],
-          [106.70460, 10.77418]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "saigon-trade-center",
-        "name": "Saigon Trade Center",
-        "nameVi": "Trung tâm Thương mại Sài Gòn",
-        "height": 160,
-        "levels": 33,
-        "year": 1995,
-        "category": "tower",
-        "style": "modernist",
-        "description": "Mixed-use office + retail complex at District 1 corner."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70155, 10.77245],
-          [106.70192, 10.77245],
-          [106.70192, 10.77282],
-          [106.70155, 10.77282],
-          [106.70155, 10.77245]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "times-square",
-        "name": "Times Square",
-        "nameVi": "Times Square HCMC",
-        "height": 164,
-        "levels": 36,
-        "year": 2009,
-        "category": "tower",
-        "style": "modernist",
-        "description": "Twin 36-storey office towers with attached four-storey retail podium."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70435, 10.77680],
-          [106.70478, 10.77680],
-          [106.70478, 10.77718],
-          [106.70435, 10.77718],
-          [106.70435, 10.77680]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "the-81-premier",
-        "name": "The 81 Premier",
-        "nameVi": "The 81 Premier",
-        "height": 220,
-        "levels": 48,
-        "year": 2018,
-        "category": "tower",
-        "style": "supertall",
-        "description": "Adjacent to Landmark 81, residential supertall in the Vinhomes Central Park complex."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.72125, 10.79455],
-          [106.72165, 10.79455],
-          [106.72165, 10.79495],
-          [106.72125, 10.79495],
-          [106.72125, 10.79455]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "vinhomes-golden-river",
-        "name": "Vinhomes Golden River",
-        "nameVi": "Vinhomes Golden River",
-        "height": 180,
-        "levels": 42,
-        "year": 2017,
-        "category": "tower",
-        "style": "modernist",
-        "description": "Luxury riverside complex with three towers along Ton Duc Thang."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70418, 10.76885],
-          [106.70458, 10.76885],
-          [106.70458, 10.76925],
-          [106.70418, 10.76925],
-          [106.70418, 10.76885]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "ifc-one-saigon",
-        "name": "IFC One Saigon",
-        "nameVi": "IFC One Saigon",
-        "height": 195,
-        "levels": 45,
-        "year": 2020,
-        "category": "tower",
-        "style": "modernist",
-        "description": "Grade A office tower at Hai Ba Trung — Pasteur corner."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.69943, 10.77680],
-          [106.69985, 10.77680],
-          [106.69985, 10.77720],
-          [106.69943, 10.77720],
-          [106.69943, 10.77680]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "saigon-centre-tower-1",
-        "name": "Saigon Centre Tower 1",
-        "nameVi": "Saigon Centre Tower 1",
-        "height": 164,
-        "levels": 45,
-        "year": 1996,
-        "category": "tower",
-        "style": "modernist",
-        "description": "Twin of Saigon Centre Tower 2 — part of the Gammon Saigon Centre complex."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70035, 10.77305],
-          [106.70070, 10.77305],
-          [106.70070, 10.77340],
-          [106.70035, 10.77340],
-          [106.70035, 10.77305]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "notre-dame-cathedral",
-        "name": "Notre-Dame Cathedral Basilica of Saigon",
-        "nameVi": "Nhà thờ Đức Bà Sài Gòn",
-        "height": 36,
-        "levels": 1,
-        "year": 1880,
-        "category": "civic",
-        "style": "neo-roman",
-        "description": "Twin 40m-bell-tower neo-Romanesque basilica, built with red brick from Toulouse. The architectural heart of French-colonial Saigon."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.69934, 10.77978],
-          [106.70004, 10.77978],
-          [106.70004, 10.78035],
-          [106.69934, 10.78035],
-          [106.69934, 10.77978]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "central-post-office",
-        "name": "Saigon Central Post Office",
-        "nameVi": "Bưu điện Trung tâm Sài Gòn",
-        "height": 32,
-        "levels": 2,
-        "year": 1891,
-        "category": "civic",
-        "style": "french-colonial",
-        "description": "Designed by Gustave Eiffel's atelier. Iconic yellow facade with arched windows and a central clock tower."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70015, 10.77985],
-          [106.70085, 10.77980],
-          [106.70095, 10.78040],
-          [106.70018, 10.78048],
-          [106.70015, 10.77985]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "independence-palace",
-        "name": "Reunification Palace",
-        "nameVi": "Dinh Độc Lập",
-        "height": 26,
-        "levels": 4,
-        "year": 1966,
-        "category": "civic",
-        "style": "modernist",
-        "description": "Modernist palace with a rooftop helicopter pad. The site of the 1975 fall of Saigon and the end of the Vietnam War."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.69588, 10.77698],
-          [106.69685, 10.77695],
-          [106.69695, 10.77760],
-          [106.69598, 10.77763],
-          [106.69588, 10.77698]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "hcmc-city-hall",
-        "name": "Ho Chi Minh City Hall",
-        "nameVi": "Ủy ban Nhân dân TP.HCM",
-        "height": 32,
-        "levels": 4,
-        "year": 1908,
-        "category": "civic",
-        "style": "french-colonial",
-        "description": "Iconic French-colonial municipal building with a 30m central clock tower, two symmetrical wings, and a wide front lawn."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70178, 10.77630],
-          [106.70255, 10.77630],
-          [106.70255, 10.77690],
-          [106.70178, 10.77690],
-          [106.70178, 10.77630]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "ben-thanh-market",
-        "name": "Ben Thanh Market",
-        "nameVi": "Chợ Bến Thành",
-        "height": 18,
-        "levels": 2,
-        "year": 1914,
-        "category": "civic",
-        "style": "french-colonial",
-        "description": "Saigon's central market, founded by the French in 1914. Iconic four-gate iron-and-brick structure."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.69823, 10.77200],
-          [106.69888, 10.77200],
-          [106.69888, 10.77265],
-          [106.69823, 10.77265],
-          [106.69823, 10.77200]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "hcmc-museum",
-        "name": "Ho Chi Minh Museum",
-        "nameVi": "Bảo tàng Hồ Chí Minh",
-        "height": 22,
-        "levels": 2,
-        "year": 1978,
-        "category": "civic",
-        "style": "modernist",
-        "description": "Modernist white-concrete museum dedicated to Ho Chi Minh. Cantilevered second floor with a ramp walkway."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.69665, 10.77805],
-          [106.69745, 10.77805],
-          [106.69745, 10.77865],
-          [106.69665, 10.77865],
-          [106.69665, 10.77805]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "museum-of-fine-arts",
-        "name": "Ho Chi Minh City Museum of Fine Arts",
-        "nameVi": "Bảo tàng Mỹ thuật TP.HCM",
-        "height": 18,
-        "levels": 2,
-        "year": 1935,
-        "category": "civic",
-        "style": "french-colonial",
-        "description": "Art deco villa that housed the Fine Arts Museum, one of the largest modern art collections in Vietnam."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.69835, 10.76943],
-          [106.69918, 10.76943],
-          [106.69918, 10.77010],
-          [106.69835, 10.77010],
-          [106.69835, 10.76943]
-        ]]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "saigon-zoo",
-        "name": "Saigon Zoo and Botanical Gardens",
-        "nameVi": "Thảo Cầm Viên Sài Gòn",
-        "height": 14,
-        "levels": 1,
-        "year": 1865,
-        "category": "civic",
-        "style": "french-colonial",
-        "description": "Vietnam's oldest zoo, founded by the French in 1865. Tropical botanical gardens with rare native and colonial-era species."
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [106.70560, 10.78245],
-          [106.70845, 10.78245],
-          [106.70845, 10.78420],
-          [106.70560, 10.78420],
-          [106.70560, 10.78245]
-        ]]
-      }
-    }
-  ]
+ "type": "FeatureCollection",
+ "name": "hcmc-landmarks",
+ "description": "HCMC hero landmarks. Footprints: OpenStreetMap (ODbL). Heights: published figures, cited per feature. Built by scripts/curate-landmarks.py.",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7217853,
+       10.7945864
+      ],
+      [
+       106.7221846,
+       10.7949004
+      ],
+      [
+       106.721828,
+       10.7953379
+      ],
+      [
+       106.7214287,
+       10.7950239
+      ],
+      [
+       106.7217853,
+       10.7945864
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Landmark 81",
+    "category": "tower",
+    "height": 150.0,
+    "base_height": 0.0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/622296616",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7217801,
+       10.7952172
+      ],
+      [
+       106.7219593,
+       10.7949811
+      ],
+      [
+       106.7217771,
+       10.7948476
+      ],
+      [
+       106.7215979,
+       10.7950837
+      ],
+      [
+       106.7217801,
+       10.7952172
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Landmark 81",
+    "category": "tower",
+    "height": 300.0,
+    "base_height": 0.0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/622296617",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7217444,
+       10.795095
+      ],
+      [
+       106.7218106,
+       10.7950052
+      ],
+      [
+       106.7217528,
+       10.7949641
+      ],
+      [
+       106.7216866,
+       10.7950539
+      ],
+      [
+       106.7217444,
+       10.795095
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Landmark 81",
+    "category": "tower",
+    "height": 461.2,
+    "base_height": 0.0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/622296618"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7044115,
+       10.7715089
+      ],
+      [
+       106.7044665,
+       10.7715122
+      ],
+      [
+       106.7044926,
+       10.7715261
+      ],
+      [
+       106.7045504,
+       10.7716054
+      ],
+      [
+       106.7045276,
+       10.7716925
+      ],
+      [
+       106.7045055,
+       10.7717389
+      ],
+      [
+       106.7044358,
+       10.7718518
+      ],
+      [
+       106.7043862,
+       10.7718386
+      ],
+      [
+       106.704335,
+       10.7718107
+      ],
+      [
+       106.7042426,
+       10.7717266
+      ],
+      [
+       106.7041812,
+       10.7716485
+      ],
+      [
+       106.7042055,
+       10.7716135
+      ],
+      [
+       106.704263,
+       10.771559
+      ],
+      [
+       106.7042843,
+       10.7715446
+      ],
+      [
+       106.704327,
+       10.7715241
+      ],
+      [
+       106.7044115,
+       10.7715089
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Bitexco Financial Tower",
+    "category": "tower",
+    "height": 186.4,
+    "base_height": 0.0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/1222241871",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7042799,
+       10.7719879
+      ],
+      [
+       106.7042483,
+       10.7720009
+      ],
+      [
+       106.7042123,
+       10.7720081
+      ],
+      [
+       106.7041565,
+       10.7719941
+      ],
+      [
+       106.7041419,
+       10.7719824
+      ],
+      [
+       106.7041174,
+       10.7719535
+      ],
+      [
+       106.7041109,
+       10.7718887
+      ],
+      [
+       106.7041141,
+       10.7718431
+      ],
+      [
+       106.7042799,
+       10.7719879
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Bitexco Financial Tower",
+    "category": "tower",
+    "height": 262.5,
+    "base_height": 0.0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/1222241872"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7041565,
+       10.7719941
+      ],
+      [
+       106.7042123,
+       10.7720081
+      ],
+      [
+       106.7042483,
+       10.7720009
+      ],
+      [
+       106.7042799,
+       10.7719879
+      ],
+      [
+       106.704365,
+       10.7719319
+      ],
+      [
+       106.7044007,
+       10.7718946
+      ],
+      [
+       106.7044558,
+       10.7718247
+      ],
+      [
+       106.7045055,
+       10.7717389
+      ],
+      [
+       106.7045276,
+       10.7716925
+      ],
+      [
+       106.7045504,
+       10.7716054
+      ],
+      [
+       106.7045859,
+       10.7716647
+      ],
+      [
+       106.7046463,
+       10.7717087
+      ],
+      [
+       106.7047696,
+       10.7717731
+      ],
+      [
+       106.7047977,
+       10.7717994
+      ],
+      [
+       106.7048152,
+       10.7718469
+      ],
+      [
+       106.7048058,
+       10.7719272
+      ],
+      [
+       106.7044719,
+       10.7722171
+      ],
+      [
+       106.7043498,
+       10.7721657
+      ],
+      [
+       106.7041565,
+       10.7719941
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Bitexco Financial Tower",
+    "category": "tower",
+    "height": 22.0,
+    "base_height": 0.0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/1222241873",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7044358,
+       10.7718518
+      ],
+      [
+       106.704365,
+       10.7719319
+      ],
+      [
+       106.7042799,
+       10.7719879
+      ],
+      [
+       106.7041141,
+       10.7718431
+      ],
+      [
+       106.7041301,
+       10.7717626
+      ],
+      [
+       106.7041812,
+       10.7716485
+      ],
+      [
+       106.7042426,
+       10.7717266
+      ],
+      [
+       106.704335,
+       10.7718107
+      ],
+      [
+       106.7043862,
+       10.7718386
+      ],
+      [
+       106.7044358,
+       10.7718518
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Bitexco Financial Tower",
+    "category": "tower",
+    "height": 256.2,
+    "base_height": 0.0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/1222241874",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7053242,
+       10.775502
+      ],
+      [
+       106.7056989,
+       10.7754764
+      ],
+      [
+       106.7058151,
+       10.7757084
+      ],
+      [
+       106.7055319,
+       10.7759389
+      ],
+      [
+       106.7052603,
+       10.775661
+      ],
+      [
+       106.7053242,
+       10.775502
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Vietcombank Tower",
+    "category": "tower",
+    "height": 206.0,
+    "base_height": 0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/402859385"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7195028,
+       10.7951771
+      ],
+      [
+       106.7197365,
+       10.7948399
+      ],
+      [
+       106.7200005,
+       10.7950165
+      ],
+      [
+       106.7201132,
+       10.794854
+      ],
+      [
+       106.7196806,
+       10.7945645
+      ],
+      [
+       106.719334,
+       10.7950642
+      ],
+      [
+       106.7195028,
+       10.7951771
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Vincom Landmark Plus",
+    "category": "tower",
+    "height": 152.0,
+    "base_height": 0,
+    "source": "developer published",
+    "osm": "way/576987250"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7186518,
+       10.7877371
+      ],
+      [
+       106.7180986,
+       10.7886251
+      ],
+      [
+       106.7183772,
+       10.7887925
+      ],
+      [
+       106.7189305,
+       10.7879046
+      ],
+      [
+       106.7186518,
+       10.7877371
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Sunwah Pearl",
+    "category": "tower",
+    "height": 175.0,
+    "base_height": 0,
+    "source": "developer published",
+    "osm": "way/875450341"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7037244,
+       10.7842488
+      ],
+      [
+       106.7037631,
+       10.7841825
+      ],
+      [
+       106.7038256,
+       10.7842199
+      ],
+      [
+       106.7039628,
+       10.7840772
+      ],
+      [
+       106.7037341,
+       10.7838172
+      ],
+      [
+       106.7034921,
+       10.7838132
+      ],
+      [
+       106.7034785,
+       10.7838083
+      ],
+      [
+       106.7034728,
+       10.7838207
+      ],
+      [
+       106.7032395,
+       10.7840662
+      ],
+      [
+       106.7033733,
+       10.7842123
+      ],
+      [
+       106.7034389,
+       10.7841795
+      ],
+      [
+       106.7034695,
+       10.7842347
+      ],
+      [
+       106.7034645,
+       10.7842451
+      ],
+      [
+       106.7034709,
+       10.7842529
+      ],
+      [
+       106.7034811,
+       10.7842516
+      ],
+      [
+       106.7034855,
+       10.784244
+      ],
+      [
+       106.7037244,
+       10.7842488
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Trade Center",
+    "category": "tower",
+    "height": 145.0,
+    "base_height": 0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/39598511"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7043564,
+       10.7738519
+      ],
+      [
+       106.7046554,
+       10.7735829
+      ],
+      [
+       106.7049253,
+       10.7738493
+      ],
+      [
+       106.7049924,
+       10.773787
+      ],
+      [
+       106.7051848,
+       10.7739753
+      ],
+      [
+       106.7048039,
+       10.7743208
+      ],
+      [
+       106.7043564,
+       10.7738519
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Times Square",
+    "category": "tower",
+    "height": 164.0,
+    "base_height": 0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/165491082"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7226356,
+       10.7909759
+      ],
+      [
+       106.7220241,
+       10.7913922
+      ],
+      [
+       106.7218578,
+       10.7911392
+      ],
+      [
+       106.722464,
+       10.7907177
+      ],
+      [
+       106.7226356,
+       10.7909759
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "The 81 Premier",
+    "category": "tower",
+    "height": 220.0,
+    "base_height": 0,
+    "source": "developer published",
+    "osm": "way/608504310"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7103665,
+       10.7870726
+      ],
+      [
+       106.7102135,
+       10.7869357
+      ],
+      [
+       106.7107468,
+       10.7864234
+      ],
+      [
+       106.7108794,
+       10.7865578
+      ],
+      [
+       106.7103665,
+       10.7870726
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Vinhomes Golden River",
+    "category": "tower",
+    "height": 180.0,
+    "base_height": 0,
+    "source": "developer published",
+    "osm": "way/781446086"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7051845,
+       10.7701422
+      ],
+      [
+       106.7051942,
+       10.7703318
+      ],
+      [
+       106.7058013,
+       10.770305
+      ],
+      [
+       106.7057945,
+       10.7701108
+      ],
+      [
+       106.7058299,
+       10.7700652
+      ],
+      [
+       106.7057904,
+       10.7700169
+      ],
+      [
+       106.7057428,
+       10.7699756
+      ],
+      [
+       106.70569,
+       10.7699468
+      ],
+      [
+       106.7055739,
+       10.7699083
+      ],
+      [
+       106.7055124,
+       10.7699021
+      ],
+      [
+       106.7054531,
+       10.7699064
+      ],
+      [
+       106.7053505,
+       10.7699316
+      ],
+      [
+       106.7052972,
+       10.7699567
+      ],
+      [
+       106.7052586,
+       10.7699822
+      ],
+      [
+       106.7052849,
+       10.7700175
+      ],
+      [
+       106.7052999,
+       10.7701375
+      ],
+      [
+       106.7051845,
+       10.7701422
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "IFC One Saigon",
+    "category": "tower",
+    "height": 195.0,
+    "base_height": 0,
+    "source": "developer published",
+    "osm": "way/306578560"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.6999299,
+       10.7799962
+      ],
+      [
+       106.6998186,
+       10.7798795
+      ],
+      [
+       106.6999336,
+       10.7797737
+      ],
+      [
+       106.7000449,
+       10.7798904
+      ],
+      [
+       106.6999299,
+       10.7799962
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Central Post Office",
+    "category": "civic",
+    "height": 32.0,
+    "base_height": 0.0,
+    "source": "curated estimate",
+    "osm": "way/1221511600"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.6997462,
+       10.78015
+      ],
+      [
+       106.6996491,
+       10.780048
+      ],
+      [
+       106.7001139,
+       10.7796208
+      ],
+      [
+       106.700211,
+       10.7797227
+      ],
+      [
+       106.6997462,
+       10.78015
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Central Post Office",
+    "category": "civic",
+    "height": 23.4,
+    "base_height": 0.0,
+    "source": "curated estimate",
+    "osm": "way/1221511601",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7000993,
+       10.7803417
+      ],
+      [
+       106.700028,
+       10.7802663
+      ],
+      [
+       106.7003218,
+       10.7799985
+      ],
+      [
+       106.700393,
+       10.7800739
+      ],
+      [
+       106.7000993,
+       10.7803417
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Central Post Office",
+    "category": "civic",
+    "height": 23.4,
+    "base_height": 0.0,
+    "source": "curated estimate",
+    "osm": "way/1221511602",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7001405,
+       10.7801638
+      ],
+      [
+       106.6999577,
+       10.7799707
+      ],
+      [
+       106.700021,
+       10.7799124
+      ],
+      [
+       106.700204,
+       10.7801058
+      ],
+      [
+       106.7001405,
+       10.7801638
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Central Post Office",
+    "category": "civic",
+    "height": 23.4,
+    "base_height": 0.0,
+    "source": "curated estimate",
+    "osm": "way/1221511603",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.700204,
+       10.7801058
+      ],
+      [
+       106.700021,
+       10.7799124
+      ],
+      [
+       106.7000449,
+       10.7798904
+      ],
+      [
+       106.7000372,
+       10.7798824
+      ],
+      [
+       106.7001052,
+       10.7798199
+      ],
+      [
+       106.7001557,
+       10.779873
+      ],
+      [
+       106.7001793,
+       10.7798513
+      ],
+      [
+       106.7002173,
+       10.7798913
+      ],
+      [
+       106.7001938,
+       10.7799128
+      ],
+      [
+       106.7002969,
+       10.7800211
+      ],
+      [
+       106.700204,
+       10.7801058
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Central Post Office",
+    "category": "civic",
+    "height": 23.4,
+    "base_height": 0.0,
+    "source": "curated estimate",
+    "osm": "way/1222997682",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7000493,
+       10.780247
+      ],
+      [
+       106.7001405,
+       10.7801638
+      ],
+      [
+       106.6999577,
+       10.7799707
+      ],
+      [
+       106.6999299,
+       10.7799962
+      ],
+      [
+       106.6999222,
+       10.7799882
+      ],
+      [
+       106.6998587,
+       10.7800466
+      ],
+      [
+       106.7000493,
+       10.780247
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Central Post Office",
+    "category": "civic",
+    "height": 23.4,
+    "base_height": 0.0,
+    "source": "curated estimate",
+    "osm": "way/1222997683",
+    "part": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7014859,
+       10.7773374
+      ],
+      [
+       106.7016113,
+       10.7772215
+      ],
+      [
+       106.7016095,
+       10.7771571
+      ],
+      [
+       106.7014324,
+       10.7769578
+      ],
+      [
+       106.7012804,
+       10.7767717
+      ],
+      [
+       106.7011485,
+       10.7766216
+      ],
+      [
+       106.7010959,
+       10.7765706
+      ],
+      [
+       106.7011139,
+       10.7765559
+      ],
+      [
+       106.7009508,
+       10.7763715
+      ],
+      [
+       106.7009332,
+       10.7763848
+      ],
+      [
+       106.700476,
+       10.7758571
+      ],
+      [
+       106.7004529,
+       10.7758544
+      ],
+      [
+       106.7004285,
+       10.7758637
+      ],
+      [
+       106.7004163,
+       10.7758771
+      ],
+      [
+       106.7002996,
+       10.7761516
+      ],
+      [
+       106.700379,
+       10.7762349
+      ],
+      [
+       106.7004462,
+       10.7760956
+      ],
+      [
+       106.7006509,
+       10.776329
+      ],
+      [
+       106.7006225,
+       10.7763528
+      ],
+      [
+       106.7007527,
+       10.7764981
+      ],
+      [
+       106.7007242,
+       10.7765287
+      ],
+      [
+       106.700712,
+       10.7765527
+      ],
+      [
+       106.7007161,
+       10.7765767
+      ],
+      [
+       106.7007297,
+       10.7765967
+      ],
+      [
+       106.7006985,
+       10.776626
+      ],
+      [
+       106.7007229,
+       10.7766527
+      ],
+      [
+       106.7007482,
+       10.7766312
+      ],
+      [
+       106.7007556,
+       10.7766385
+      ],
+      [
+       106.7007475,
+       10.7766445
+      ],
+      [
+       106.7007848,
+       10.7766838
+      ],
+      [
+       106.7007336,
+       10.7767314
+      ],
+      [
+       106.7007625,
+       10.7767637
+      ],
+      [
+       106.7008208,
+       10.7767098
+      ],
+      [
+       106.7008289,
+       10.7767191
+      ],
+      [
+       106.7008018,
+       10.7767431
+      ],
+      [
+       106.7008241,
+       10.7767698
+      ],
+      [
+       106.7008581,
+       10.7767425
+      ],
+      [
+       106.7008716,
+       10.7767571
+      ],
+      [
+       106.7008913,
+       10.7767651
+      ],
+      [
+       106.7009096,
+       10.7767651
+      ],
+      [
+       106.7009279,
+       10.7767598
+      ],
+      [
+       106.7009666,
+       10.7767305
+      ],
+      [
+       106.7010008,
+       10.7767688
+      ],
+      [
+       106.7009902,
+       10.7767776
+      ],
+      [
+       106.7014859,
+       10.7773374
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Ho Chi Minh City Hall",
+    "category": "civic",
+    "height": 32.0,
+    "base_height": 0,
+    "source": "curated estimate",
+    "osm": "way/341504305"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.6973514,
+       10.7728018
+      ],
+      [
+       106.6979013,
+       10.7718808
+      ],
+      [
+       106.6979246,
+       10.7718556
+      ],
+      [
+       106.697962,
+       10.7718338
+      ],
+      [
+       106.6979993,
+       10.7718349
+      ],
+      [
+       106.6980986,
+       10.77189
+      ],
+      [
+       106.6982411,
+       10.7719839
+      ],
+      [
+       106.698646,
+       10.7722213
+      ],
+      [
+       106.6986902,
+       10.7722595
+      ],
+      [
+       106.6986973,
+       10.7723013
+      ],
+      [
+       106.6986761,
+       10.7723412
+      ],
+      [
+       106.6984432,
+       10.772719
+      ],
+      [
+       106.6981079,
+       10.7732824
+      ],
+      [
+       106.6980916,
+       10.7732961
+      ],
+      [
+       106.6980647,
+       10.7733076
+      ],
+      [
+       106.6980332,
+       10.7732984
+      ],
+      [
+       106.6973631,
+       10.7728958
+      ],
+      [
+       106.6973455,
+       10.7728798
+      ],
+      [
+       106.6973374,
+       10.7728626
+      ],
+      [
+       106.6973374,
+       10.7728362
+      ],
+      [
+       106.6973514,
+       10.7728018
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Ben Thanh Market",
+    "category": "civic",
+    "height": 18.0,
+    "base_height": 0,
+    "source": "clock tower, curated estimate",
+    "osm": "way/39514795"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.699776,
+       10.776242
+      ],
+      [
+       106.6995997,
+       10.776054
+      ],
+      [
+       106.6995765,
+       10.7760731
+      ],
+      [
+       106.6995016,
+       10.7759933
+      ],
+      [
+       106.6995239,
+       10.7759732
+      ],
+      [
+       106.6993515,
+       10.7757894
+      ],
+      [
+       106.6995855,
+       10.7755901
+      ],
+      [
+       106.6996633,
+       10.7756688
+      ],
+      [
+       106.6996063,
+       10.7757202
+      ],
+      [
+       106.6996285,
+       10.7757439
+      ],
+      [
+       106.6995829,
+       10.7757815
+      ],
+      [
+       106.6996533,
+       10.7758586
+      ],
+      [
+       106.6996881,
+       10.7758395
+      ],
+      [
+       106.699725,
+       10.7758348
+      ],
+      [
+       106.6997626,
+       10.7758553
+      ],
+      [
+       106.6997733,
+       10.7758691
+      ],
+      [
+       106.699778,
+       10.7758875
+      ],
+      [
+       106.6997766,
+       10.7759165
+      ],
+      [
+       106.6997673,
+       10.7759389
+      ],
+      [
+       106.6997438,
+       10.7759593
+      ],
+      [
+       106.6997994,
+       10.7760239
+      ],
+      [
+       106.6998497,
+       10.7759837
+      ],
+      [
+       106.6998692,
+       10.7760041
+      ],
+      [
+       106.6999215,
+       10.7759607
+      ],
+      [
+       106.6999952,
+       10.7760404
+      ],
+      [
+       106.699776,
+       10.776242
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Ho Chi Minh City Museum",
+    "category": "civic",
+    "height": 22.0,
+    "base_height": 0,
+    "source": "curated estimate",
+    "osm": "way/802105071"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7029788,
+       10.7766684
+      ],
+      [
+       106.7029183,
+       10.7766029
+      ],
+      [
+       106.7029623,
+       10.7765636
+      ],
+      [
+       106.7029482,
+       10.7765482
+      ],
+      [
+       106.7029714,
+       10.7765275
+      ],
+      [
+       106.7029669,
+       10.7765226
+      ],
+      [
+       106.7030502,
+       10.7764482
+      ],
+      [
+       106.7030546,
+       10.7764529
+      ],
+      [
+       106.7030766,
+       10.7764333
+      ],
+      [
+       106.7030902,
+       10.776448
+      ],
+      [
+       106.703137,
+       10.7764062
+      ],
+      [
+       106.7035188,
+       10.7768189
+      ],
+      [
+       106.7034551,
+       10.7768758
+      ],
+      [
+       106.7034404,
+       10.77686
+      ],
+      [
+       106.703352,
+       10.7769389
+      ],
+      [
+       106.7033674,
+       10.7769556
+      ],
+      [
+       106.7033001,
+       10.7770156
+      ],
+      [
+       106.7029788,
+       10.7766684
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Opera House",
+    "category": "civic",
+    "height": 25.0,
+    "base_height": 0,
+    "source": "curated estimate",
+    "osm": "way/801710792"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.6994056,
+       10.7796186
+      ],
+      [
+       106.6992287,
+       10.7794444
+      ],
+      [
+       106.6989493,
+       10.7797027
+      ],
+      [
+       106.6989257,
+       10.7796779
+      ],
+      [
+       106.6988367,
+       10.7797622
+      ],
+      [
+       106.6988493,
+       10.7797751
+      ],
+      [
+       106.698727,
+       10.7798909
+      ],
+      [
+       106.698738,
+       10.7799171
+      ],
+      [
+       106.6987132,
+       10.7799507
+      ],
+      [
+       106.6987169,
+       10.7799836
+      ],
+      [
+       106.6987407,
+       10.780006
+      ],
+      [
+       106.6987125,
+       10.7800294
+      ],
+      [
+       106.6987102,
+       10.7800663
+      ],
+      [
+       106.6987333,
+       10.780091
+      ],
+      [
+       106.6987719,
+       10.7800923
+      ],
+      [
+       106.6987994,
+       10.7800676
+      ],
+      [
+       106.6988235,
+       10.7800976
+      ],
+      [
+       106.698856,
+       10.7800962
+      ],
+      [
+       106.6988825,
+       10.7800775
+      ],
+      [
+       106.6989171,
+       10.7800729
+      ],
+      [
+       106.6990388,
+       10.7799595
+      ],
+      [
+       106.6990567,
+       10.7799781
+      ],
+      [
+       106.6991344,
+       10.7799074
+      ],
+      [
+       106.6991126,
+       10.7798837
+      ],
+      [
+       106.6993442,
+       10.7796783
+      ],
+      [
+       106.6994056,
+       10.7796186
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Notre-Dame Cathedral Basilica of Saigon",
+    "category": "civic",
+    "height": 57.0,
+    "base_height": 0,
+    "source": "spire height, Archdiocese of Saigon",
+    "osm": "way/801950766"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.695548,
+       10.7771887
+      ],
+      [
+       106.6958381,
+       10.7769266
+      ],
+      [
+       106.6956621,
+       10.7767386
+      ],
+      [
+       106.6955756,
+       10.7768168
+      ],
+      [
+       106.6956032,
+       10.7768464
+      ],
+      [
+       106.6954771,
+       10.7769603
+      ],
+      [
+       106.6953261,
+       10.7767991
+      ],
+      [
+       106.6953564,
+       10.7767718
+      ],
+      [
+       106.6951818,
+       10.7765854
+      ],
+      [
+       106.694968,
+       10.7767786
+      ],
+      [
+       106.6951429,
+       10.7769654
+      ],
+      [
+       106.6951699,
+       10.776941
+      ],
+      [
+       106.6953227,
+       10.7771042
+      ],
+      [
+       106.6952033,
+       10.777212
+      ],
+      [
+       106.6951744,
+       10.7771811
+      ],
+      [
+       106.6950854,
+       10.7772616
+      ],
+      [
+       106.6952605,
+       10.7774486
+      ],
+      [
+       106.695548,
+       10.7771887
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Independence Palace",
+    "category": "civic",
+    "height": 26.0,
+    "base_height": 0,
+    "source": "curated estimate",
+    "osm": "way/39598493"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       106.7008039,
+       10.7731817
+      ],
+      [
+       106.7008655,
+       10.7730416
+      ],
+      [
+       106.700855,
+       10.7730372
+      ],
+      [
+       106.7009265,
+       10.7728747
+      ],
+      [
+       106.7005681,
+       10.7727226
+      ],
+      [
+       106.7004949,
+       10.7728892
+      ],
+      [
+       106.7004541,
+       10.7728719
+      ],
+      [
+       106.7003943,
+       10.7730079
+      ],
+      [
+       106.7008039,
+       10.7731817
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Saigon Centre Tower 2",
+    "category": "tower",
+    "height": 193.0,
+    "base_height": 0,
+    "source": "CTBUH Skyscraper Center",
+    "osm": "way/802125674"
+   }
+  }
+ ],
+ "missing": []
 }

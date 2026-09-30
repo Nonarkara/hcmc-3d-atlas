@@ -4,28 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HCMCx 3D Atlas -- Hồ Chí Minh City block by block</title>
-  <meta name="description" content="Live 3D atlas of Ho Chi Minh City. Every building in OpenStreetMap, the waterways, Metro Line 1, landmarks, and live sensors -- all extruded, all clickable." />
+  <meta name="description" content="Live 3D atlas of Ho Chi Minh City. 4 million buildings at real height from satellite and OpenStreetMap, the waterways, Metro Line 1, landmarks, and live sensors -- all extruded, all clickable." />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <!-- Preload the PMTiles archives so MapLibre starts the Range fetch before
-       app.js evaluates. Cuts a perceptible beat off the first 3D extrusion
-       appearing on a cold load. -->
-  <link rel="preload" as="fetch" href="/hcmc-buildings.pmtiles" crossorigin />
-  <link rel="preload" as="fetch" href="/hcmc-waterways.pmtiles" crossorigin />
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css?v=hcmc-atlas-20260930-1790766243-3c67e2e" />
+  <link rel="stylesheet" href="/style.css?v=hcmc-atlas-20260930-1790791683-2c48f6d" />
 </head>
 <body data-surface="hcmc-dashboard">
   <main class="atlas-page">
     <header class="atlas-header">
       <div class="atlas-header-meta">
-        <span class="atlas-eyebrow">3D Atlas -- HCMC -- 107 k OSM buildings</span>
+        <span class="atlas-eyebrow">3D Atlas -- HCMC -- 4.0 M buildings</span>
         <h1 class="atlas-title">
           <span class="atlas-title-desk">Ho Chi Minh City, live, block by block</span>
           <span class="atlas-title-phone">TP.HCM -- live 3D atlas</span>
         </h1>
         <p class="atlas-kicker">
-          Esri satellite + 107 143 building extrusions + waterways + Metro Line 1 + VNTT sensors.
-          Click any building for height and OSM ID; use the flyover to tour the governor corridors.
+          Every building footprint in the metro area -- 4 013 181 of them, mapped from satellite imagery and OpenStreetMap -- at real height, on Esri satellite, with waterways, Metro Line 1 and VNTT sensors.
+          Click any building to see its height and where that number came from.
         </p>
       </div>
       <nav class="atlas-header-nav" aria-label="Atlas navigation">
@@ -43,13 +38,14 @@
         <div class="atlas-map-loading-inner">
           <span class="atlas-map-loading-glyph">Hx</span>
           <p class="atlas-map-loading-line">HCMCx 3D atlas loading</p>
-          <p class="atlas-map-loading-sub">107 k OSM buildings - 2 800 waterways - 14 metro stations</p>
+          <p class="atlas-map-loading-sub">4.0 M buildings - 2 800 waterways - 14 metro stations</p>
         </div>
       </div>
 
       <!-- Layer toggle rail (top-left, inside map) -->
       <aside class="atlas-layers" aria-label="Map layers">
-        <p class="atlas-eyebrow">Layers</p>
+        <details>
+        <summary class="atlas-panel-summary"><span class="atlas-eyebrow">Layers</span></summary>
         <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="hcmc-buildings">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--buildings"></span>
           <span>3D buildings</span>
@@ -87,14 +83,15 @@
         <button type="button" class="atlas-basemap-btn atlas-basemap-btn--active" data-bas="esri">
           Esri satellite
         </button>
+        </details>
       </aside>
 
       <!-- Inspect card (right) -->
-      <aside class="atlas-inspect" id="atlas-inspect" aria-live="polite">
+      <aside class="atlas-inspect" id="atlas-inspect" aria-live="polite" hidden>
         <p class="atlas-eyebrow">Inspect</p>
         <h2 class="atlas-data-heading">Click any building</h2>
         <p class="atlas-inspect-blurb" id="atlas-inspect-hint">
-          Hover highlights the outline; click locks the building and shows its height, levels, and OSM ID.
+          Click locks the building and shows its height, where the height came from, and who mapped the footprint.
         </p>
         <div class="atlas-inspect-card" id="atlas-inspect-card" hidden>
           <p class="atlas-inspect-coords" id="atlas-inspect-coords"></p>
@@ -104,18 +101,23 @@
 
       <!-- Quick-jump area grid (bottom of map) -->
       <section class="atlas-quick" id="atlas-areas">
-        <div class="atlas-quick-head">
-          <p class="atlas-eyebrow">Quick jump</p>
-          <h2 class="atlas-quick-heading">12 places</h2>
-          <button type="button" id="atlas-flyover-btn" class="atlas-flyover-btn">Start flyover</button>
-        </div>
-        <div id="atlas-area-grid" class="atlas-area-grid" role="list" aria-label="HCMC key areas"></div>
+        <details class="atlas-quick-details">
+          <summary class="atlas-panel-summary">
+            <span class="atlas-eyebrow">Quick jump</span>
+            <span class="atlas-quick-heading">12 places</span>
+          </summary>
+          <div id="atlas-area-grid" class="atlas-area-grid" role="list" aria-label="HCMC key areas"></div>
+        </details>
+        <button type="button" id="atlas-flyover-btn" class="atlas-flyover-btn">Start flyover</button>
       </section>
     </div>
 
     <footer class="atlas-footer">
       <p>
-        Sources: <strong>Esri World Imagery</strong> satellite basemap, <strong>OpenStreetMap</strong> building footprints + waterways via Overpass (107 143 buildings / 2 812 ways in the HCMC tile set), <strong>OpenFreeMap</strong> OpenMapTiles for road network, <strong>VNTT</strong> live sensors. Building heights: explicit OSM <code>height</code> / <code>levels</code> where present, otherwise procedurally inferred from building type + footprint area (hero landmarks: real published heights). Procedural heights with a BKKx-style tiered multiplier — short buildings get 6× boost so tube houses extrude visibly from city-overview; tall towers get 1.4× so Landmark 81 stays at ~real height instead of the old 3688m spike. PMTiles archives streamed from R2 via Cloudflare Range passthrough.
+        Footprints: <strong>Overture Maps</strong> 2026-09-23 -- Microsoft ML Buildings 2 211 519, Google Open Buildings 1 685 646, OpenStreetMap 116 016 (all satellite- or survey-traced).
+        Heights in real metres, no scaling: 4 238 from a measured OSM height or floor count; 2 741 664 from <strong>GHSL built-up height</strong> (EU JRC, Sentinel-2 + DEM, 2018), the average building height of each 100 m cell, capped at 60 m; 1 267 279 in cells with no built-up signal at a 10 m type default.
+        Landmarks: OSM footprints and building parts at published heights (CTBUH or developer), cited per feature.
+        Basemap <strong>Esri World Imagery</strong>; live sensors <strong>VNTT</strong>. Tiles streamed from R2 by Range request.
       </p>
       <p class="atlas-footer-meta">
         HCMCx 3D Atlas -- atlas.hcmc.nonarkara.org -- <span>CC-BY 4.0</span>
@@ -126,7 +128,7 @@
   <!-- MapLibre + PMTiles are loaded as UMD scripts so they attach to window.
        Defer is required because the JS uses globals from these. -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js" defer></script>
-  <script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js" defer></script>
-  <script src="/app.js?v=hcmc-atlas-20260930-1790766243-3c67e2e" defer></script>
+  <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js" defer></script>
+  <script src="/app.js?v=hcmc-atlas-20260930-1790791683-2c48f6d" defer></script>
 </body>
 </html>

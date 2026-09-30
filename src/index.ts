@@ -31,7 +31,7 @@ export interface Env {
 }
 
 const PMTILES_PATH = "/hcmc-buildings.pmtiles";
-const PMTILES_R2_KEY = "buildings/hcmc.pmtiles";
+const PMTILES_R2_KEY = "buildings/hcmc-v2.pmtiles"; // Overture bake, scripts/bake-buildings.py
 const WATERWAYS_PMTILES_PATH = "/hcmc-waterways.pmtiles";
 const WATERWAYS_PMTILES_R2_KEY = "buildings/hcmc-waterways.pmtiles";
 const HERITAGE_PMTILES_PATH = "/hcmc-buildings-cbd.pmtiles";

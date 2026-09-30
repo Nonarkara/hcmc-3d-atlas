@@ -5,3 +5,4 @@ Untitled/
 *.log
 .env
 .env.*
+out/

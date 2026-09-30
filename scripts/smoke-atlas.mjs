@@ -51,9 +51,9 @@ async function main() {
     assert.match(html, /\/style\.css\?v=hcmc-atlas-/, "no style.css cache-buster");
   });
 
-  await check("index.html preloads PMTiles", async () => {
-    assert.match(html, /<link rel="preload"[^>]+hcmc-buildings\.pmtiles/);
-    assert.match(html, /<link rel="preload"[^>]+hcmc-waterways\.pmtiles/);
+  // A preload fetches the whole archive (10+ MB) with no Range header.
+  await check("index.html does not preload PMTiles", async () => {
+    assert.doesNotMatch(html, /<link rel="preload"[^>]+\.pmtiles/);
   });
 
   await check("app.js declares ATLAS_BUILD_TAG", async () => {
