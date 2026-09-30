@@ -12,7 +12,7 @@
   <link rel="preload" as="fetch" href="/hcmc-buildings.pmtiles" crossorigin />
   <link rel="preload" as="fetch" href="/hcmc-waterways.pmtiles" crossorigin />
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css?v=hcmc-atlas-20260930-1790741576-ecfe276" />
+  <link rel="stylesheet" href="/style.css?v=hcmc-atlas-20260930-1790744748-2386252" />
 </head>
 <body data-surface="hcmc-dashboard">
   <main class="atlas-page">
@@ -115,7 +115,7 @@
 
     <footer class="atlas-footer">
       <p>
-        Sources: <strong>Esri World Imagery</strong> satellite basemap, <strong>OpenStreetMap</strong> building footprints + waterways via Overpass (107 143 buildings / 2 812 ways in the HCMC tile set), <strong>OpenFreeMap</strong> OpenMapTiles for road network, <strong>VNTT</strong> live sensors. Building heights: explicit OSM <code>height</code> / <code>levels</code> where present, otherwise procedurally inferred from building type + footprint area (hero landmarks: real published heights). Procedural heights compressed with a sqrt-curve (≈ pow(h, 0.6) × 6) so tube houses remain visible while 461m towers stay under 280m visual — readable from zoom 13, majestic from zoom 14. PMTiles archives streamed from R2 via Cloudflare Range passthrough.
+        Sources: <strong>Esri World Imagery</strong> satellite basemap, <strong>OpenStreetMap</strong> building footprints + waterways via Overpass (107 143 buildings / 2 812 ways in the HCMC tile set), <strong>OpenFreeMap</strong> OpenMapTiles for road network, <strong>VNTT</strong> live sensors. Building heights: explicit OSM <code>height</code> / <code>levels</code> where present, otherwise procedurally inferred from building type + footprint area (hero landmarks: real published heights). Procedural heights compressed with a sqrt-curve (≈ pow(h, 0.5) × 22) so tube houses stay visible from city-overview while 461m towers stay under 500m visual — readable from zoom 11, majestic from zoom 14. PMTiles archives streamed from R2 via Cloudflare Range passthrough.
       </p>
       <p class="atlas-footer-meta">
         HCMCx 3D Atlas -- atlas.hcmc.nonarkara.org -- <span>CC-BY 4.0</span>
@@ -127,6 +127,6 @@
        Defer is required because the JS uses globals from these. -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js" defer></script>
   <script src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js" defer></script>
-  <script src="/app.js?v=hcmc-atlas-20260930-1790741576-ecfe276" defer></script>
+  <script src="/app.js?v=hcmc-atlas-20260930-1790744748-2386252" defer></script>
 </body>
 </html>
