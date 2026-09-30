@@ -45,7 +45,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20260930-1790748490-a37c6ea";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20260930-1790749659-426e61d";
 // Append a build-tag query string to the PMTiles URLs so every deploy
 // busts Cloudflare's edge cache. Without this, the first GET (which the
 // protocol handler makes without a Range header) gets cached as 200 OK
@@ -244,19 +244,18 @@ function addBuildings() {
     minzoom: 10,
     paint: {
       "fill-extrusion-color": HEIGHT_COLOR,
-      // Aggressive sqrt-curve ≈ pow(h, 0.5) × 70 so buildings POP from
-      // city-overview (zoom 11) where the dashboard iframe default-loads.
-      // Without this boost, an 8m tube house extruded at 24m visual is
-      // sub-pixel at zoom 11 and the war-room looks like a flat
-      // satellite basemap. With this curve:
-      //   8m tube house    →  200m visual (25× boost, prominent)
-      //   15m walk-up      →  271m
-      //   30m low-rise     →  383m
-      //   60m apartment    →  542m
-      //  100m mid-tall     →  700m
-      //  200m tall         →  990m
-      //  461m Landmark 81  → 1500m (3.3× real -- tower dominates skyline
-      //                              without the 3688m old ×8 absurd)
+      // Moderate sqrt-curve ≈ pow(h, 0.5) × 12 — chosen so an 8m tube
+      // house extrudes to 34m visual, which at corridor zoom gives a
+      // block aspect of ~6:1 (still readable as a building, not a
+      // spaghetti strand). At city-overview (zoom 11) the same 34m
+      // extrusion is just visible without breaking proportions.
+      //   8m tube house    →  34m visual
+      //   15m walk-up      →  46m
+      //   30m low-rise     →  66m
+      //   60m apartment    →  93m
+      //  100m mid-tall     → 120m
+      //  200m tall         → 170m
+      //  461m Landmark 81  → 268m  (≈ real, not 3688m like the old ×8)
       // Single curve, no nested zoom interpolation, no risk of MapLibre
       // rejecting the expression.
       "fill-extrusion-height": [
@@ -269,13 +268,13 @@ function addBuildings() {
           12,
         ],
         0,   0,
-        8,   200,
-        15,  271,
-        30,  383,
-        60,  542,
-        100, 700,
-        200, 990,
-        500, 1565,
+        8,   34,
+        15,  46,
+        30,  66,
+        60,  93,
+        100, 120,
+        200, 170,
+        500, 268,
       ],
       "fill-extrusion-base": 0,
       "fill-extrusion-opacity": BUILDING_OPACITY,
@@ -566,10 +565,10 @@ async function addHeroLandmarks() {
     },
   });
 
-  // Hero extrusion — same sqrt(0.5) × 70 curve as the residential fabric.
-  // 36m Notre-Dame → 420m, 262m Bitexco → 1133m, 461m Landmark 81 →
-  // 1500m. Visible from the dashboard hero shot AND proportional at
-  // corridor zoom.
+  // Hero extrusion — same sqrt(0.5) × 12 curve as the residential fabric.
+  // 36m Notre-Dame → 72m, 262m Bitexco → 194m, 461m Landmark 81 →
+  // 268m. Proportional blocks, not strands; visible from city-overview
+  // AND proportional at corridor zoom.
   mapInstance.addLayer({
     id: "hcmc-landmarks-3d",
     type: "fill-extrusion",
@@ -581,11 +580,11 @@ async function addHeroLandmarks() {
         "interpolate", ["linear"],
         ["get", "height"],
         0,   0,
-        30,  383,
-        60,  542,
-        100, 700,
-        200, 990,
-        500, 1565,
+        30,  66,
+        60,  93,
+        100, 120,
+        200, 170,
+        500, 268,
       ],
       "fill-extrusion-base": 0,
       "fill-extrusion-opacity": 0.95,
