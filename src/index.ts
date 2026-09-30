@@ -78,6 +78,13 @@ function applyTileCors(headers: Headers) {
     "access-control-expose-headers",
     "Accept-Ranges, Content-Length, Content-Range, ETag",
   );
+  // Vary on Range so Cloudflare's edge does NOT cache the first 200 OK
+  // response and serve it back on subsequent Range requests. Without this,
+  // pmtiles.js's first header-range GET gets a 206 with content-length 128,
+  // then the next full-file GET (or any other Range) hits the cached 200
+  // and the library throws "Server returned no content-length header or
+  // content-length exceeding request".
+  headers.append("vary", "Range");
 }
 
 // ── PMTiles Range passthrough ─────────────────────────────────────────────
@@ -110,28 +117,32 @@ async function servePmtilesFromR2(request: Request, env: Env, key: string): Prom
     const suffixLen = range.length ?? 0;
     const length = Math.min(suffixLen, head.size);
     const offset = head.size - length;
-    const obj = await env.HCMC_TILES.get(key, { range: { offset, length } });
-    if (obj === null || !("body" in obj) || obj.body === null) {
-      return new Response(null, { status: 304 });
-    }
-    const headers = new Headers();
-    headers.set("content-type", "application/octet-stream");
-    headers.set("accept-ranges", "bytes");
-    headers.set("cache-control", "public, max-age=31536000, immutable");
-    applyTileCors(headers);
-    if (obj.httpEtag) headers.set("etag", obj.httpEtag);
-    headers.set("x-hcmcx-source", `R2 hcmc-tiles/${key}`);
-    headers.set("content-range", `bytes ${offset}-${offset + length - 1}/${head.size}`);
-    headers.set("content-length", String(length));
-    return new Response(obj.body, { status: 206, headers });
+    return streamRange(env, key, offset, length, head.size);
   }
-  const obj = await env.HCMC_TILES.get(key, {
-    range: range ?? undefined,
-    onlyIf: {
-      etagMatches: request.headers.get("if-match") ?? undefined,
-      etagDoesNotMatch: request.headers.get("if-none-match") ?? undefined,
-    },
-  });
+  if (range) {
+    // Validate the requested range against the actual object size BEFORE
+    // hitting R2 -- R2 throws Error 10039 "The requested range is not
+    // satisfiable" which manifests as a Worker 500 and trips pmtiles.js.
+    const head = await env.HCMC_TILES.head(key);
+    if (head === null) return new Response("not found", { status: 404 });
+    const requestedEnd = range.offset + (range.length ?? (head.size - range.offset)) - 1;
+    if (range.offset >= head.size) {
+      // Proper HTTP 416 Range Not Satisfiable, pmtiles.js handles this.
+      const h = new Headers();
+      h.set("content-range", `bytes */${head.size}`);
+      h.set("accept-ranges", "bytes");
+      applyTileCors(h);
+      return new Response(null, { status: 416, headers: h });
+    }
+    if (requestedEnd >= head.size) {
+      // Clamp the read to the actual file end rather than blowing up. This
+      // is what S3 / R2 do internally too -- pmtiles.js accepts the
+      // truncated read as long as content-length matches.
+      range.length = head.size - range.offset;
+    }
+    return streamRange(env, key, range.offset, range.length ?? (head.size - range.offset), head.size);
+  }
+  const obj = await env.HCMC_TILES.get(key);
   if (obj === null) return new Response("not found", { status: 404 });
   if (!("body" in obj) || obj.body === null) return new Response(null, { status: 304 });
   const headers = new Headers();
@@ -141,15 +152,25 @@ async function servePmtilesFromR2(request: Request, env: Env, key: string): Prom
   applyTileCors(headers);
   if (obj.httpEtag) headers.set("etag", obj.httpEtag);
   headers.set("x-hcmcx-source", `R2 hcmc-tiles/${key}`);
-  if (range) {
-    const length = range.length ?? obj.size - range.offset;
-    const end = range.offset + length - 1;
-    headers.set("content-range", `bytes ${range.offset}-${end}/${obj.size}`);
-    headers.set("content-length", String(length));
-    return new Response(obj.body, { status: 206, headers });
-  }
   headers.set("content-length", String(obj.size));
   return new Response(obj.body, { status: 200, headers });
+}
+
+async function streamRange(env: Env, key: string, offset: number, length: number, totalSize: number): Promise<Response> {
+  const obj = await env.HCMC_TILES.get(key, { range: { offset, length } });
+  if (obj === null || !("body" in obj) || obj.body === null) {
+    return new Response(null, { status: 304 });
+  }
+  const headers = new Headers();
+  headers.set("content-type", "application/octet-stream");
+  headers.set("accept-ranges", "bytes");
+  headers.set("cache-control", "public, max-age=31536000, immutable");
+  applyTileCors(headers);
+  if (obj.httpEtag) headers.set("etag", obj.httpEtag);
+  headers.set("x-hcmcx-source", `R2 hcmc-tiles/${key}`);
+  headers.set("content-range", `bytes ${offset}-${offset + length - 1}/${totalSize}`);
+  headers.set("content-length", String(length));
+  return new Response(obj.body, { status: 206, headers });
 }
 
 // ── HCMC harness ──────────────────────────────────────────────────────────
@@ -926,6 +947,8 @@ export default {
     }
 
     // PMTiles Range passthrough (the whole reason this Worker exists)
+    // pmtiles.js appends `?v=...` cache busters to the source URL, so we
+    // route by the pathname only (not the full URL with query).
     if (path === PMTILES_PATH) return servePmtilesFromR2(request, env, PMTILES_R2_KEY);
     if (path === WATERWAYS_PMTILES_PATH) return servePmtilesFromR2(request, env, WATERWAYS_PMTILES_R2_KEY);
     if (path === HERITAGE_PMTILES_PATH) return servePmtilesFromR2(request, env, HERITAGE_PMTILES_R2_KEY);

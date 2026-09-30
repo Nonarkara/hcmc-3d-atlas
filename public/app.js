@@ -25,8 +25,6 @@ if (!__maplibregl__ || !__pmtiles__) {
 }
 
 const ATLAS_BASE = ""; // same origin
-const PMTILES_BUILDINGS = ATLAS_BASE + "/hcmc-buildings.pmtiles";
-const PMTILES_WATERWAYS = ATLAS_BASE + "/hcmc-waterways.pmtiles";
 const HCMC_CENTER = [106.7009, 10.775];
 
 const ESRI_IMAGERY =
@@ -47,7 +45,19 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20260928-1790620450-708fd87";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20260930-1790741576-ecfe276";
+// Append a build-tag query string to the PMTiles URLs so every deploy
+// busts Cloudflare's edge cache. Without this, the first GET (which the
+// protocol handler makes without a Range header) gets cached as 200 OK
+// at the edge, and every subsequent Range request from pmtiles.js reads
+// back that cached 200 with the FULL content-length -- the protocol then
+// throws "Server returned no content-length header or content-length
+// exceeding request" because the body is 10 MB but it only asked for 16 KB.
+// pmtiles.js's Protocol() regex captures the path up to /z/x/y, so query
+// strings before /z/x/y are part of the source URL and ride along on
+// every Range fetch -- exactly the cache-buster we need.
+const PMTILES_BUILDINGS = ATLAS_BASE + "/hcmc-buildings.pmtiles" + "?v=" + encodeURIComponent(ATLAS_BUILD_TAG);
+const PMTILES_WATERWAYS = ATLAS_BASE + "/hcmc-waterways.pmtiles" + "?v=" + encodeURIComponent(ATLAS_BUILD_TAG);
 let currentBasemap = "esri";
 let currentAreaId = null;
 let flyoverTimer = null;
@@ -149,6 +159,13 @@ mapInstance = new __maplibregl__.Map({
 requestAnimationFrame(function () { mapInstance.resize(); });
 
 // Hide loading overlay once MapLibre has rendered at least one tile.
+// A stuck overlay is worse than a brief flash, so we hide on:
+//   1. `idle`  -- the normal "everything in viewport rendered" signal
+//   2. `render` + loaded() -- mid-flight, just hide if we've drawn once
+//   3. `error` -- a tile-source failure (e.g. PMTiles Range/cache glitch)
+//      should NOT leave the user staring at the spinner; the map is still
+//      usable via the basemap + waterways + metro layers
+//   4. hard 4.5s timeout -- last-resort guarantee
 let loadingHidden = false;
 function hideLoadingIfReady() {
   if (loadingHidden) return;
@@ -158,7 +175,14 @@ function hideLoadingIfReady() {
 }
 mapInstance.on("idle", hideLoadingIfReady);
 mapInstance.on("render", function () { if (mapInstance.loaded()) hideLoadingIfReady(); });
-setTimeout(hideLoadingIfReady, 3500);
+mapInstance.on("error", function (e) {
+  // Log it so the developer can see why a tile failed, but never let it
+  // block the loading overlay -- the user wants to interact with the rest
+  // of the map even if one source is broken.
+  if (e && e.error) console.warn("[atlas] tile error:", e.error.message || e.error);
+  hideLoadingIfReady();
+});
+setTimeout(hideLoadingIfReady, 4500);
 
 mapInstance.addControl(
   new __maplibregl__.NavigationControl({ visualizePitch: true }),
@@ -194,12 +218,17 @@ const BUILDING_OPACITY = [
 ];
 
 // ── Layer builders ──────────────────────────────────────────────────────────
-// Visual height multiplier: real HCMC tube-house heights (8-15m) are invisible
-// at zoom 13-15 against a satellite basemap. Multiply render_height by 8x so a
-// 12m shophouse extrudes to 96m (clearly visible) and a 60m apartment extrudes
-// to 480m (skyscraper-scale) — heights are scaled, real proportions kept, no
-// model is broken. Inspect still shows the real render_height in the popup.
-const HEIGHT_VIS_MULT = 8;
+// Visual height compression: real HCMC tube-house heights (8-15m) are invisible
+// at zoom 13-15 against a satellite basemap, but a linear 8x multiplier makes
+// Landmark 81 (461m × 8 = 3688m) absurdly tall. Compress the curve with
+// pow(height, 0.6) × 6 — a 12m tube house reads as 24m (visible against the
+// satellite), a 60m apartment reads as 78m, and a 262m tower reads as 196m.
+// Ratios stay true (the tower is still 8× the tube house) without breaking
+// the skyline. Inspect still shows the real render_height in the popup.
+function heightVis(h) {
+  if (!Number.isFinite(h) || h <= 0) return 0;
+  return Math.pow(h, 0.6) * 6;
+}
 
 function addBuildings() {
   mapInstance.addSource("hcmc-buildings-src", {
@@ -215,9 +244,12 @@ function addBuildings() {
     minzoom: 10,
     paint: {
       "fill-extrusion-color": HEIGHT_COLOR,
+      // Power-curve compression: a 12m tube house reads as 24m, a 60m
+      // apartment as 78m, a 262m tower as 196m. Ratios stay true (the
+      // tower is still ~8× the tube house) without breaking the skyline
+      // at zoom 14. Stops chosen so the curve approximates pow(h, 0.6)*8.
       "fill-extrusion-height": [
-        "*",
-        HEIGHT_VIS_MULT,
+        "interpolate", ["linear"],
         [
           "coalesce",
           ["get", "render_height"],
@@ -225,17 +257,16 @@ function addBuildings() {
           ["*", ["coalesce", ["get", "levels"], 1], 3],
           12,
         ],
+        0,   0,
+        8,   20,
+        15,  30,
+        30,  50,
+        60,  80,
+        100, 115,
+        200, 170,
+        500, 280,
       ],
-      "fill-extrusion-base": [
-        "*",
-        HEIGHT_VIS_MULT,
-        [
-          "coalesce",
-          ["get", "render_min_height"],
-          ["get", "min_height"],
-          0,
-        ],
-      ],
+      "fill-extrusion-base": 0,
       "fill-extrusion-opacity": BUILDING_OPACITY,
       "fill-extrusion-vertical-gradient": true,
     },
@@ -474,8 +505,10 @@ function addCivicPOIs() {
 // ── Hero landmarks — actual 3D extrusions for Bitexco, Landmark 81, Notre Dame,
 // City Hall, etc. (hcmc-landmarks.geojson). The geometry is the real building
 // footprint; the height field is the published metres. The fill-extrusion
-// uses HEIGHT_VIS_MULT to match the surrounding OSM fabric and stays white/bright
-// so the icons pop above the warm-orange residential carpet.
+// uses the same compressed power-curve as the residential fabric so a 262m
+// Bitexco reads as ~190m visual — proportional to its 8m neighbour without
+// breaking the skyline. Stays cream/gold so the icons pop above the warm
+// residential carpet.
 async function addHeroLandmarks() {
   let doc;
   try {
@@ -522,9 +555,9 @@ async function addHeroLandmarks() {
     },
   });
 
-  // Hero extrusion — same HEIGHT_VIS_MULT as the residential layer, so the
-  // buildings stay in scale (a 36m civic gets 4x = 144m which still reads as
-  // "low civic" against a 461m Landmark 81 = 1844m).
+  // Hero extrusion — same compressed power-curve as the residential layer
+  // so a 36m civic reads as ~62m and a 461m tower reads as ~270m. The
+  // tower still dominates but doesn't shoot past the camera frustum.
   mapInstance.addLayer({
     id: "hcmc-landmarks-3d",
     type: "fill-extrusion",
@@ -532,7 +565,18 @@ async function addHeroLandmarks() {
     minzoom: 11,
     paint: {
       "fill-extrusion-color": HERO_COLOR,
-      "fill-extrusion-height": ["*", HEIGHT_VIS_MULT, ["get", "height"]],
+      "fill-extrusion-height": [
+        "interpolate", ["linear"],
+        ["get", "height"],
+        0,   0,
+        8,   20,
+        15,  30,
+        30,  50,
+        60,  80,
+        100, 115,
+        200, 170,
+        500, 280,
+      ],
       "fill-extrusion-base": 0,
       "fill-extrusion-opacity": 0.95,
       "fill-extrusion-vertical-gradient": true,
