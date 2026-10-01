@@ -89,6 +89,14 @@ test("building heights are real metres (no multiplier)", () => {
     throw new Error("index.html copy describes a height boost");
 });
 
+// boot() awaits a fetch before adding layers; if it then waits for
+// `style.load`, the event has often already fired and the city never draws.
+test("city layers wait on a style promise armed at map construction", () => {
+  const code = readFileSync(resolve(ROOT, "public/app.js"), "utf-8");
+  if (!code.includes("styleReady.then(onMapReady)")) throw new Error("onMapReady is not gated on styleReady");
+  if (/once\("style\.load",\s*onMapReady\)/.test(code)) throw new Error("late style.load listener is back");
+});
+
 test("landmarks use real OSM footprints with a cited height", () => {
   const lm = JSON.parse(readFileSync(resolve(ROOT, "public/hcmc-landmarks.geojson"), "utf-8"));
   if (lm.features.length < 10) throw new Error(`only ${lm.features.length} landmark features`);

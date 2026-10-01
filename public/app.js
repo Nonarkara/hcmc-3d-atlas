@@ -45,7 +45,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790849036-853cc60";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790849240-d209d01";
 // Append a build-tag query string to the PMTiles URLs so every deploy
 // busts Cloudflare's edge cache. Without this, the first GET (which the
 // protocol handler makes without a Range header) gets cached as 200 OK
@@ -167,6 +167,16 @@ mapInstance = new __maplibregl__.Map({
 });
 
 requestAnimationFrame(function () { mapInstance.resize(); });
+
+// Resolves once the style object exists. Registered here, at construction,
+// because boot() awaits a fetch first: by then `style.load` may already have
+// fired, and isStyleLoaded() stays false while satellite tiles are still
+// loading -- so waiting for the event *after* the fetch could wait forever
+// and the city layers would randomly never appear.
+const styleReady = new Promise(function (resolve) {
+  if (mapInstance.style && mapInstance.style._loaded) resolve();
+  else mapInstance.once("style.load", resolve);
+});
 
 // Hide loading overlay once MapLibre has rendered at least one tile.
 // A stuck overlay is worse than a brief flash, so we hide on:
@@ -1022,11 +1032,7 @@ async function boot() {
   // satellite tile, so a slow Esri response never reaches onMapReady and
   // the buildings, buses, and sensor labels never appear. `isStyleLoaded`
   // is the warm path; `style.load` is the cold path.
-  if (mapInstance.isStyleLoaded()) {
-    onMapReady();
-  } else {
-    mapInstance.once("style.load", onMapReady);
-  }
+  styleReady.then(onMapReady);
 
   const flyoverBtn = document.getElementById("atlas-flyover-btn");
   if (flyoverBtn) {
