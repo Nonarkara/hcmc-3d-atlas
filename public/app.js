@@ -45,7 +45,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790834038-61d42a9";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790849036-853cc60";
 // Append a build-tag query string to the PMTiles URLs so every deploy
 // busts Cloudflare's edge cache. Without this, the first GET (which the
 // protocol handler makes without a Range header) gets cached as 200 OK
@@ -210,14 +210,10 @@ mapInstance.addControl(new __maplibregl__.ScaleControl({ unit: "metric" }), "bot
 // unmeasured buildings at their GHSL satellite cell height.
 // Properties from scripts/bake-buildings.py: h, b, hs, src, cls, name.
 const HEIGHT_RAW = ["to-number", ["coalesce", ["get", "h"], ["get", "render_height"], ["get", "height"]], 0];
-// One flat multiplier on the raw height. Single multiplier, no
-// nesting, no case-with-all -- keeps MapLibre happy at every zoom.
-// 8 m tube house → 32 m visual (~8× boost); 461 m Landmark 81 → 1844 m
-// (4× real -- proportional, no 3688m spike). At corridor zoom the
-// tube houses look like slim blocks (4 m footprint × 32 m), at city-
-// overview they cluster into a dense carpet texture (4 M buildings ×
-// 32 m average visual height).
-const HEIGHT_GET = ["*", HEIGHT_RAW, 4];
+// Real metres. Heights outside 1-500 m are corrupt tags -> 10 m.
+// Never multiply this: an 8 m tube house drawn 32 m tall is the
+// "vertical spaghetti" the 2026-09/10 passes kept shipping.
+const HEIGHT_GET = ["case", [">=", HEIGHT_RAW, 1], ["case", ["<=", HEIGHT_RAW, 500], HEIGHT_RAW, 10], 10];
 // Base must stay strictly below height -- base >= height makes MapLibre
 // emit degenerate roof triangles that read as sawteeth.
 const BASE_RAW = ["to-number", ["coalesce", ["get", "b"], ["get", "render_min_height"], ["get", "min_height"]], 0];
@@ -240,7 +236,9 @@ const BUILDING_OPACITY = ["interpolate", ["linear"], ["zoom"], 11, 0.6, 13, 0.88
 const HEIGHT_SOURCE_LABEL = {
   measured: "measured (OSM / survey)",
   floors: "floor count x 3.3 m",
-  satellite: "satellite, 100 m cell average (GHSL)",
+  google: "satellite, this building (Google Open Buildings 2.5D, 2023)",
+  ghsl: "satellite, 100 m area average (GHSL, 2018)",
+  satellite: "satellite, 100 m area average (GHSL, 2018)",
   estimated: "estimated from building type",
 };
 
@@ -262,8 +260,7 @@ function addBuildings() {
     type: "fill-extrusion",
     source: "hcmc-buildings-src",
     "source-layer": "buildings",
-    minzoom: 11,
-    filter: ["all", ["has", "h"], [">", ["get", "h"], 0]],
+    minzoom: 12,
     paint: {
       "fill-extrusion-color": [
         "case",
@@ -794,6 +791,59 @@ function stopFlyover() {
   if (btn) btn.textContent = "Start flyover";
 }
 
+// ── Live sun ────────────────────────────────────────────────────────────────
+// The light on the buildings is the real sun over Saigon right now (NOAA
+// low-precision solar position, good to ~0.5 deg). After dark the light
+// goes overhead, cool and dim -- the city at night, not a fixed noon.
+function sunOverHcmc(date) {
+  const rad = Math.PI / 180;
+  const lat = 10.776 * rad, lon = 106.700;
+  const d = date.getTime() / 86400000 - 10957.5; // days since J2000
+  const g = (357.529 + 0.98560028 * d) * rad;
+  const q = 280.459 + 0.98564736 * d;
+  const L = (q + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * rad;
+  const e = (23.439 - 0.00000036 * d) * rad;
+  const ra = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L));
+  const dec = Math.asin(Math.sin(e) * Math.sin(L));
+  const gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+  const ha = ((gmst * 15 + lon) * rad) - ra;
+  const alt = Math.asin(Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(ha));
+  const az = Math.atan2(-Math.sin(ha), Math.tan(dec) * Math.cos(lat) - Math.sin(lat) * Math.cos(ha));
+  return { altitude: alt / rad, azimuth: ((az / rad) + 360) % 360 };
+}
+
+function applySunLight() {
+  const sun = sunOverHcmc(new Date());
+  const day = sun.altitude > 0;
+  mapInstance.setLight({
+    anchor: "map",
+    position: day ? [1.4, sun.azimuth, Math.max(10, 90 - sun.altitude)] : [1.2, 0, 20],
+    color: day ? (sun.altitude < 12 ? "#ffd9a8" : "#fff4e0") : "#9fb4d8",
+    intensity: day ? 0.5 : 0.28,
+  });
+}
+
+// ── Idle orbit ─────────────────────────────────────────────────────────────
+// After 20 s untouched the camera turns slowly round the view, so a shared
+// link opened on a phone shows depth without a gesture. Any touch stops it.
+let orbitIdleTimer = null;
+let orbiting = false;
+const ORBIT_DEG_PER_SEC = 2.5;
+function orbitStep() {
+  if (!orbiting) return;
+  mapInstance.easeTo({ bearing: mapInstance.getBearing() + ORBIT_DEG_PER_SEC * 4, duration: 4000, easing: function (t) { return t; } });
+}
+function armIdleOrbit() {
+  clearTimeout(orbitIdleTimer);
+  orbiting = false;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  orbitIdleTimer = setTimeout(function () {
+    if (flyoverTimer || mapInstance.getZoom() < 12) return armIdleOrbit();
+    orbiting = true;
+    orbitStep();
+  }, 20000);
+}
+
 // ── Inspect (click any building) ──────────────────────────────────────────
 function setupInspect() {
   let hoveredFeature = null;
@@ -934,6 +984,13 @@ async function boot() {
     if (initial) flyToArea(initial, { updateHash: false, instant: true });
     refreshLiveOverlay();
     setInterval(refreshLiveOverlay, 30000);
+    applySunLight();
+    setInterval(applySunLight, 60000);
+    mapInstance.on("moveend", function () { if (orbiting) orbitStep(); });
+    ["mousedown", "touchstart", "wheel", "keydown"].forEach(function (ev) {
+      document.addEventListener(ev, armIdleOrbit, { passive: true, capture: true });
+    });
+    armIdleOrbit();
 
     // Self-test + handshake. Count the layers + sources we just added.
     // If PMTiles failed silently (range 416, CORS block, missing tile

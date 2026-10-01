@@ -7,7 +7,7 @@
   <meta name="description" content="Live 3D atlas of Ho Chi Minh City. 4 million buildings at real height from satellite and OpenStreetMap, the waterways, Metro Line 1, landmarks, and live sensors -- all extruded, all clickable." />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css?v=hcmc-atlas-20261001-1790826770-2d7b328" />
+  <link rel="stylesheet" href="/style.css?v=hcmc-atlas-20261001-1790849036-853cc60" />
 </head>
 <body data-surface="hcmc-dashboard">
   <main class="atlas-page">
@@ -19,7 +19,7 @@
           <span class="atlas-title-phone">TP.HCM -- live 3D atlas</span>
         </h1>
         <p class="atlas-kicker">
-          Every building footprint in the metro area -- 4 013 181 of them, mapped from satellite imagery and OpenStreetMap -- visible at city-overview via tiered boost (short 6×, towers 1.3×), on Esri satellite, with waterways, Metro Line 1 and VNTT sensors.
+          Every building in the metro area -- 4 013 181 footprints traced from satellite imagery and OpenStreetMap -- each at its own height, measured from space, on Esri satellite with waterways, Metro Line 1 and VNTT sensors. The light is the real sun over Saigon right now.
           Click any building to see its height and where that number came from.
         </p>
       </div>
@@ -114,9 +114,9 @@
 
     <footer class="atlas-footer">
       <p>
-        Footprints: <strong>Overture Maps</strong> 2026-09-23 -- Microsoft ML Buildings 2 211 519, Google Open Buildings 1 685 646, OpenStreetMap 116 016 (all satellite- or survey-traced).
-        Heights from Overture / GHSL satellite cell averages: 4 238 measured (OSM height / floor count); 2 741 664 from <strong>GHSL built-up height</strong> (EU JRC, Sentinel-2 + DEM, 2018), 100 m cell average capped at 60 m; 1 267 279 in cells with no built-up signal at 10 m type default. Visibility: short buildings get 6× boost, towers get 1.3× so tube houses extrude from city-overview.
-        Landmarks: OSM footprints and building parts at published heights (CTBUH or developer), cited per feature.
+        Footprints: <strong>Overture Maps</strong> 2026-09-23 -- Microsoft ML Buildings 2 211 519, Google Open Buildings 1 685 646, OpenStreetMap 116 016.
+        Heights in real metres, never scaled: 4 238 measured (OSM height or floor count); 3 195 695 per building from <strong>Google Open Buildings 2.5D Temporal</strong> (2023, the 75th-percentile satellite height inside each footprint); 418 807 from <strong>GHSL</strong> built-up height (EU JRC, 2018, 100 m area average) where Google has none; 394 441 at a type default with no satellite signal. Satellite heights are capped at four times a footprint's width.
+        The satellite model under-reads the tallest towers (it saturates near 100 m), so landmarks use OSM footprints and building parts at published heights (CTBUH or developer), cited per feature.
         Basemap <strong>Esri World Imagery</strong>; live sensors <strong>VNTT</strong>. Tiles streamed from R2 by Range request.
       </p>
       <p class="atlas-footer-meta">
@@ -129,6 +129,6 @@
        Defer is required because the JS uses globals from these. -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js" defer></script>
   <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js" defer></script>
-  <script src="/app.js?v=hcmc-atlas-20261001-1790826770-2d7b328" defer></script>
+  <script src="/app.js?v=hcmc-atlas-20261001-1790849036-853cc60" defer></script>
 </body>
 </html>

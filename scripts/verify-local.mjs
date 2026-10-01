@@ -81,6 +81,12 @@ test("building heights are real metres (no multiplier)", () => {
   const ext = code.match(/"fill-extrusion-height":\s*([^\n]+)/g) || [];
   for (const line of ext) if (/\["\*"/.test(line)) throw new Error(`scaled extrusion height: ${line.trim()}`);
   if (/fill-translate/.test(code)) throw new Error("fake drop-shadow layer is back");
+  // The multiplier came back once hidden inside the HEIGHT_GET constant.
+  const def = (code.match(/const HEIGHT_GET\s*=\s*([^;]+);/) || [])[1] || "";
+  if (!def) throw new Error("HEIGHT_GET not found");
+  if (/\["[*\/^]"|"sqrt"|"\^"/.test(def)) throw new Error(`HEIGHT_GET scales height: ${def}`);
+  if (/(boost|multiplier|exaggerat)/i.test(readFileSync(resolve(ROOT, "public/index.html"), "utf-8")))
+    throw new Error("index.html copy describes a height boost");
 });
 
 test("landmarks use real OSM footprints with a cited height", () => {
