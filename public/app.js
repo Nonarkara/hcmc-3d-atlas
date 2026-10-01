@@ -45,7 +45,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790828292-d5b39f4";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790834038-61d42a9";
 // Append a build-tag query string to the PMTiles URLs so every deploy
 // busts Cloudflare's edge cache. Without this, the first GET (which the
 // protocol handler makes without a Range header) gets cached as 200 OK
@@ -210,12 +210,14 @@ mapInstance.addControl(new __maplibregl__.ScaleControl({ unit: "metric" }), "bot
 // unmeasured buildings at their GHSL satellite cell height.
 // Properties from scripts/bake-buildings.py: h, b, hs, src, cls, name.
 const HEIGHT_RAW = ["to-number", ["coalesce", ["get", "h"], ["get", "render_height"], ["get", "height"]], 0];
-// One flat multiplier on the raw height. Single multiplier, no nesting,
-// no case-with-all -- keeps MapLibre happy at every zoom. Short
-// tube-houses still sub-pixel at city-overview (8 m real), but the
-// 4 M building density gives the carpet texture, and at corridor
-// zoom (14+) every building reads at proper proportion.
-const HEIGHT_GET = ["*", HEIGHT_RAW, 1.6];
+// One flat multiplier on the raw height. Single multiplier, no
+// nesting, no case-with-all -- keeps MapLibre happy at every zoom.
+// 8 m tube house → 32 m visual (~8× boost); 461 m Landmark 81 → 1844 m
+// (4× real -- proportional, no 3688m spike). At corridor zoom the
+// tube houses look like slim blocks (4 m footprint × 32 m), at city-
+// overview they cluster into a dense carpet texture (4 M buildings ×
+// 32 m average visual height).
+const HEIGHT_GET = ["*", HEIGHT_RAW, 4];
 // Base must stay strictly below height -- base >= height makes MapLibre
 // emit degenerate roof triangles that read as sawteeth.
 const BASE_RAW = ["to-number", ["coalesce", ["get", "b"], ["get", "render_min_height"], ["get", "min_height"]], 0];
@@ -260,7 +262,8 @@ function addBuildings() {
     type: "fill-extrusion",
     source: "hcmc-buildings-src",
     "source-layer": "buildings",
-    minzoom: 12,
+    minzoom: 11,
+    filter: ["all", ["has", "h"], [">", ["get", "h"], 0]],
     paint: {
       "fill-extrusion-color": [
         "case",
