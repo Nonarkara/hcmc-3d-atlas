@@ -45,7 +45,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790825140-c187ccd";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790828292-d5b39f4";
 // Append a build-tag query string to the PMTiles URLs so every deploy
 // busts Cloudflare's edge cache. Without this, the first GET (which the
 // protocol handler makes without a Range header) gets cached as 200 OK
@@ -210,22 +210,12 @@ mapInstance.addControl(new __maplibregl__.ScaleControl({ unit: "metric" }), "bot
 // unmeasured buildings at their GHSL satellite cell height.
 // Properties from scripts/bake-buildings.py: h, b, hs, src, cls, name.
 const HEIGHT_RAW = ["to-number", ["coalesce", ["get", "h"], ["get", "render_height"], ["get", "height"]], 0];
-// Visibility boost: at city-overview (zoom 11-13), tube-house footprints
-// are 4-6 m wide and 8-15 m real height -- sub-pixel regardless of how
-// many we have. A 4 M building count gives us density, not visibility.
-// Apply a tiered multiplier so the carpet reads as 3D from above:
-//   <15 m tube / walk-up    → 6× boost (8 m → 48 m, block-visible)
-//   <50 m low / mid-rise    → 4× boost (30 m → 120 m)
-//   <150 m tall             → 2.5× boost (100 m → 250 m)
-//   ≥150 m tower            → 1.3× boost (461 m → 600 m, ≈ real)
-const HEIGHT_BOOSTED = [
-  "case",
-  ["<", HEIGHT_RAW, 15], ["*", HEIGHT_RAW, 6],
-  ["<", HEIGHT_RAW, 50], ["*", HEIGHT_RAW, 4],
-  ["<", HEIGHT_RAW, 150], ["*", HEIGHT_RAW, 2.5],
-  ["*", HEIGHT_RAW, 1.3],
-];
-const HEIGHT_GET = ["case", ["all", [">=", HEIGHT_BOOSTED, 1], ["<=", HEIGHT_BOOSTED, 1500]], HEIGHT_BOOSTED, 10];
+// One flat multiplier on the raw height. Single multiplier, no nesting,
+// no case-with-all -- keeps MapLibre happy at every zoom. Short
+// tube-houses still sub-pixel at city-overview (8 m real), but the
+// 4 M building density gives the carpet texture, and at corridor
+// zoom (14+) every building reads at proper proportion.
+const HEIGHT_GET = ["*", HEIGHT_RAW, 1.6];
 // Base must stay strictly below height -- base >= height makes MapLibre
 // emit degenerate roof triangles that read as sawteeth.
 const BASE_RAW = ["to-number", ["coalesce", ["get", "b"], ["get", "render_min_height"], ["get", "min_height"]], 0];
