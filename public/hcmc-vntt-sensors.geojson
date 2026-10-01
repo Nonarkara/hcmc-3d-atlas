@@ -1,0 +1,77 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gauge-nguyen-huu-canh",
+        "type": "gauge",
+        "label_en": "Street gauge — Nguyễn Hữu Cảnh",
+        "label_vi": "Cảm biến mực nước — Nguyễn Hữu Cảnh",
+        "gap": "Live water depth vs open-data 'flooding likely'.",
+        "icon": "gauge"
+      },
+      "geometry": { "type": "Point", "coordinates": [106.7205, 10.7905] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "pump-district-6",
+        "type": "pump",
+        "label_en": "Pump station — District 6",
+        "label_vi": "Trạm bơm — Quận 6",
+        "gap": "Pump flow / outage — invisible to any open feed.",
+        "icon": "pump"
+      },
+      "geometry": { "type": "Point", "coordinates": [106.6345, 10.7465] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "anpr-cong-hoa",
+        "type": "anpr",
+        "label_en": "ANPR + signal — Cộng Hòa",
+        "label_vi": "Camera đếm xe + đèn — Cộng Hòa",
+        "gap": "True veh/hr per lane + adaptive signal retiming.",
+        "icon": "anpr"
+      },
+      "geometry": { "type": "Point", "coordinates": [106.6525, 10.8025] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "cctv-hang-xanh",
+        "type": "cctv",
+        "label_en": "CCTV — Hàng Xanh",
+        "label_vi": "Camera — Hàng Xanh",
+        "gap": "Verified incident detection at the interchange.",
+        "icon": "cctv"
+      },
+      "geometry": { "type": "Point", "coordinates": [106.7115, 10.8005] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "anpr-cat-lai",
+        "type": "anpr",
+        "label_en": "ANPR — Cát Lái port",
+        "label_vi": "Camera đếm xe — cảng Cát Lái",
+        "gap": "Container-truck counts feeding port-approach control.",
+        "icon": "anpr"
+      },
+      "geometry": { "type": "Point", "coordinates": [106.7885, 10.7625] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gauge-district-8",
+        "type": "gauge",
+        "label_en": "Canal gauge — District 8",
+        "label_vi": "Cảm biến kênh — Quận 8",
+        "gap": "Tidal canal level for king-tide street flooding.",
+        "icon": "gauge"
+      },
+      "geometry": { "type": "Point", "coordinates": [106.6685, 10.7405] }
+    }
+  ]
+}

@@ -230,6 +230,8 @@ details[open] > .atlas-panel-summary::after { content: "-"; }
 .atlas-toggle-swatch--bus { background: var(--bus); }
 .atlas-toggle-swatch--poi { background: var(--poi); }
 .atlas-toggle-swatch--sensor { background: var(--sensor); }
+.atlas-toggle-swatch--flood { background: linear-gradient(135deg, transparent 45%, #ef4444 45%, #ef4444 55%, transparent 55%); }
+.atlas-toggle-swatch--aqi { background: linear-gradient(135deg, #22c55e, #facc15, #ef4444); }
 
 .atlas-basemap-btn--active {
   color: var(--bg);

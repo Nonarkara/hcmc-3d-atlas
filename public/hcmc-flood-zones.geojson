@@ -1,0 +1,125 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Nguyễn Hữu Cảnh",
+        "name_en": "Nguyễn Hữu Cảnh St (Bình Thạnh)",
+        "name_vi": "Đường Nguyễn Hữu Cảnh (Bình Thạnh)",
+        "desc": "The city's most notorious flood bowl ('rốn ngập'). Land subsidence dropped the road below the river; tide + rain inundate it within minutes.",
+        "riskLevel": "high",
+        "cause": "tidal+pluvial"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[106.7110, 10.7935], [106.7160, 10.7918], [106.7215, 10.7895], [106.7250, 10.7888], [106.7268, 10.7905], [106.7250, 10.7930], [106.7205, 10.7948], [106.7150, 10.7958], [106.7115, 10.7952], [106.7110, 10.7935]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "District 6",
+        "name_en": "District 6 canal-side wards",
+        "name_vi": "Quận 6 (các phường bên kênh)",
+        "desc": "Low canal-side wards, pluvial + tidal combined.",
+        "riskLevel": "high",
+        "cause": "tidal+pluvial"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[106.6320, 10.7480], [106.6420, 10.7460], [106.6480, 10.7440], [106.6500, 10.7480], [106.6480, 10.7530], [106.6400, 10.7550], [106.6320, 10.7530], [106.6290, 10.7500], [106.6320, 10.7480]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "District 8 canals",
+        "name_en": "District 8 canal banks (Kênh Đôi / Kênh Tẻ)",
+        "name_vi": "Quận 8 (bờ kênh Đôi / kênh Tẻ)",
+        "desc": "Tidal backflow along the major canals; floods on the tide alone without rain.",
+        "riskLevel": "high",
+        "cause": "tidal"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[106.6280, 10.7300], [106.6400, 10.7290], [106.6500, 10.7320], [106.6550, 10.7380], [106.6500, 10.7420], [106.6380, 10.7400], [106.6280, 10.7370], [106.6240, 10.7330], [106.6280, 10.7300]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Thảo Điền",
+        "name_en": "Thảo Điền (Thủ Đức)",
+        "name_vi": "Thảo Điền (TP. Thủ Đức)",
+        "desc": "Riverside high-end ward; tidal inundation along the Saigon river bend.",
+        "riskLevel": "medium",
+        "cause": "tidal"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[106.7250, 10.8080], [106.7320, 10.8060], [106.7380, 10.8080], [106.7400, 10.8120], [106.7360, 10.8160], [106.7280, 10.8160], [106.7240, 10.8120], [106.7250, 10.8080]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bình Chánh",
+        "name_en": "Bình Chánh rural-urban fringe",
+        "name_vi": "Bình Chánh (vành đai nông thôn - đô thị)",
+        "desc": "Southwestern low-lying rural-urban fringe, pluvial + drainage overload.",
+        "riskLevel": "high",
+        "cause": "pluvial"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[106.5800, 10.6800], [106.6000, 10.6780], [106.6200, 10.6820], [106.6280, 10.6880], [106.6220, 10.6950], [106.6050, 10.6970], [106.5850, 10.6940], [106.5780, 10.6880], [106.5800, 10.6800]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Nhà Bè",
+        "name_en": "Nhà Bè tidal lowland",
+        "name_vi": "Nhà Bè (vùng trũng triều cường)",
+        "desc": "Southern tidal lowland near the river mouth; inundated by every spring tide.",
+        "riskLevel": "high",
+        "cause": "tidal"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[106.7300, 10.6500], [106.7450, 10.6480], [106.7600, 10.6550], [106.7680, 10.6650], [106.7600, 10.6750], [106.7450, 10.6750], [106.7320, 10.6680], [106.7280, 10.6600], [106.7300, 10.6500]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "An Phú Đông",
+        "name_en": "An Phú Đông (District 12) riverbend",
+        "name_vi": "An Phú Đông (Quận 12) - bãi bồi sông",
+        "desc": "Northern riverbend, tidal; rural low-lying communes.",
+        "riskLevel": "medium",
+        "cause": "tidal"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[106.6900, 10.8700], [106.7020, 10.8680], [106.7100, 10.8720], [106.7080, 10.8800], [106.6980, 10.8840], [106.6880, 10.8800], [106.6860, 10.8740], [106.6900, 10.8700]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Phú Mỹ Hưng",
+        "name_en": "Phú Mỹ Hưng / South Saigon (District 7)",
+        "name_vi": "Phú Mỹ Hưng / Nam Sài Gòn (Quận 7)",
+        "desc": "Reclaimed low delta; new urban area built on what was tidal mudflats.",
+        "riskLevel": "medium",
+        "cause": "tidal"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[106.7050, 10.7250], [106.7180, 10.7220], [106.7280, 10.7280], [106.7300, 10.7380], [106.7220, 10.7450], [106.7100, 10.7440], [106.7020, 10.7370], [106.7000, 10.7300], [106.7050, 10.7250]]]
+      }
+    }
+  ]
+}

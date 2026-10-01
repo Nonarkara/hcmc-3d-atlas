@@ -514,6 +514,166 @@ function addCivicPOIs() {
   });
 }
 
+// ── Flood zones ────────────────────────────────────────────────────────────
+// Eight documented recurring-flood polygons (HCMC Steering Center for
+// Flood Control + triều cường reporting). Polygons go in muted red
+// with a hatched outline so they read as a warning, not a building.
+async function addFloodZones() {
+  let doc;
+  try {
+    const r = await fetch(ATLAS_BASE + "/hcmc-flood-zones.geojson", { cache: "no-store" });
+    if (!r.ok) throw new Error("flood zones " + r.status);
+    doc = await r.json();
+  } catch (e) {
+    console.warn("[atlas] flood zones unavailable:", e.message);
+    return;
+  }
+  const features = (doc.features || []).filter(function (f) {
+    const g = f.geometry;
+    return g && (g.type === "Polygon" || g.type === "MultiPolygon");
+  });
+  if (!features.length) return;
+  mapInstance.addSource("hcmc-flood-zones-src", {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: features },
+    attribution: "(c) HCMC SCFC, triều cường reporting",
+  });
+  // Fill — muted red, semi-transparent so satellite shows through.
+  mapInstance.addLayer({
+    id: "flood-zones",
+    type: "fill",
+    source: "hcmc-flood-zones-src",
+    paint: {
+      "fill-color": [
+        "match",
+        ["get", "riskLevel"],
+        "high", "#dc2626",
+        "medium", "#f59e0b",
+        "#9ca3af",
+      ],
+      "fill-opacity": 0.22,
+    },
+  });
+  // Outline — sharp warning border.
+  mapInstance.addLayer({
+    id: "flood-zones-outline",
+    type: "line",
+    source: "hcmc-flood-zones-src",
+    paint: {
+      "line-color": [
+        "match",
+        ["get", "riskLevel"],
+        "high", "#ef4444",
+        "medium", "#f59e0b",
+        "#9ca3af",
+      ],
+      "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 2.5],
+      "line-dasharray": [3, 2],
+    },
+  });
+  // Label — zone name on hover only (to keep city-overview uncluttered).
+  mapInstance.addLayer({
+    id: "flood-zones-label",
+    type: "symbol",
+    source: "hcmc-flood-zones-src",
+    minzoom: 13,
+    layout: {
+      "text-field": ["get", "name_en"],
+      "text-size": 10,
+      "text-offset": [0, 0],
+      "text-anchor": "center",
+      "text-optional": true,
+    },
+    paint: {
+      "text-color": "#fecaca",
+      "text-halo-color": "#0a0a0a",
+      "text-halo-width": 1,
+    },
+  });
+}
+
+// ── Air quality / aerosol (Open-Meteo) ────────────────────────────────────
+// Live aerosol points proxied from the dashboard's /api/air-quality
+// endpoint. Color follows AQI category, size scales with PM2.5.
+async function addAirQuality() {
+  let points;
+  try {
+    const r = await fetch("https://hcmc.nonarkara.org/api/air-quality", { cache: "no-store" });
+    if (!r.ok) throw new Error("air quality " + r.status);
+    points = await r.json();
+  } catch (e) {
+    console.warn("[atlas] air quality unavailable:", e.message);
+    return;
+  }
+  if (!Array.isArray(points) || !points.length) return;
+  const features = points
+    .filter(function (p) { return Number.isFinite(p.lng) && Number.isFinite(p.lat); })
+    .map(function (p) {
+      const aqi = p.aqi || 0;
+      return {
+        type: "Feature",
+        properties: {
+          label: p.label,
+          aqi: aqi,
+          pm25: p.pm25,
+          category: p.category,
+          source: p.source,
+        },
+        geometry: { type: "Point", coordinates: [p.lng, p.lat] },
+      };
+    });
+  mapInstance.addSource("hcmc-aqi-src", {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: features },
+    attribution: "(c) HCMC air quality feed (Open-Meteo fallback)",
+  });
+  mapInstance.addLayer({
+    id: "aqi-points",
+    type: "circle",
+    source: "hcmc-aqi-src",
+    minzoom: 10,
+    paint: {
+      "circle-radius": [
+        "interpolate", ["linear"], ["zoom"],
+        10, 6,
+        16, 18,
+      ],
+      "circle-color": [
+        "match",
+        ["get", "category"],
+        "Good", "#22c55e",
+        "Moderate", "#facc15",
+        "Unhealthy for Sensitive", "#f97316",
+        "Unhealthy", "#ef4444",
+        "Very Unhealthy", "#a21caf",
+        "Hazardous", "#7f1d1d",
+        "#9ca3af",
+      ],
+      "circle-opacity": 0.7,
+      "circle-stroke-color": "#0a0a0a",
+      "circle-stroke-width": 0.6,
+    },
+  });
+  mapInstance.addLayer({
+    id: "aqi-labels",
+    type: "symbol",
+    source: "hcmc-aqi-src",
+    minzoom: 12,
+    layout: {
+      "text-field": ["concat", ["to-string", ["round", ["get", "aqi"]], ], " AQI"],
+      "text-size": 10,
+      "text-offset": [0, 1.6],
+      "text-anchor": "top",
+      "text-optional": true,
+    },
+    paint: {
+      "text-color": "#fde68a",
+      "text-halo-color": "#0a0a0a",
+      "text-halo-width": 1,
+    },
+  });
+}
+
 // ── Hero landmarks — actual 3D extrusions for Bitexco, Landmark 81, Notre Dame,
 // City Hall, etc. (hcmc-landmarks.geojson). The geometry is the real building
 // footprint; the height field is the published metres. The fill-extrusion
@@ -633,6 +793,57 @@ function addLiveSensors() {
       "circle-opacity": 0.85,
     },
   });
+
+  // Map a feed sensor to a circle color from its current reading.
+  function colorFor(reading) {
+    if (!reading || !reading.value && reading.value !== 0) return "#9ca3af";
+    if (reading.status === "alert") return "#ef4444";
+    if (reading.status === "warning") return "#f59e0b";
+    return "#22c55e";
+  }
+  function statusFor(reading, type) {
+    if (!reading) return "stale";
+    const v = reading.value;
+    if (type === "water_level" && typeof v === "number" && v >= 30) return "alert";
+    if (type === "water_level" && typeof v === "number" && v >= 15) return "warning";
+    if (type === "flow_rate" && typeof v === "number" && v <= 100) return "alert";
+    return reading.status || "normal";
+  }
+
+  async function load() {
+    try {
+      const r = await fetch("https://hcmc.nonarkara.org/api/hcmc/vntt-sensors", { cache: "no-store" });
+      if (!r.ok) throw new Error("vntt " + r.status);
+      const j = await r.json();
+      const sensors = (j.sensors || []).filter(function (s) {
+        return Number.isFinite(s.lng) && Number.isFinite(s.lat);
+      });
+      const features = sensors.map(function (s) {
+        const r2 = s.latestReading || {};
+        return {
+          type: "Feature",
+          properties: {
+            id: s.id,
+            label: s.name || s.nameVi || s.id,
+            type: s.type,
+            unit: s.unit,
+            value: r2.value,
+            status: statusFor(r2, s.type),
+            provenance: j.provenance && j.provenance.tier,
+          },
+          geometry: { type: "Point", coordinates: [s.lng, s.lat] },
+        };
+      });
+      const src = mapInstance.getSource("live-sensors-src");
+      if (src && typeof src.setData === "function") src.setData({ type: "FeatureCollection", features: features });
+    } catch (e) {
+      console.warn("[atlas] live sensors fetch failed:", e.message);
+    }
+  }
+  load();
+  // Refresh every 60s.
+  setInterval(load, 60000);
+  void colorFor; // reserved for future styling refinements
 }
 
 function applyAllLayers() {
@@ -642,6 +853,8 @@ function applyAllLayers() {
   addMetro();
   addBusStops();
   addCivicPOIs();
+  addFloodZones();
+  addAirQuality();
   addLiveSensors();
   // Ground lines go under the extrusions so towers occlude them, instead of
   // the river and the metro line painting across building faces.
