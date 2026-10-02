@@ -11,8 +11,8 @@ compatibility_flags = ["nodejs_compat"]
 pattern = "atlas.hcmc.nonarkara.org"
 custom_domain = true
 
-# R2 bucket for building PMTiles (432K-feature HCMC metro buildings).
-# Pre-bake with scripts/osm-buildings-to-geojson.py + generate-3d-tiles.sh
+# Production R2 bucket; archives are not included in the repository.
+# See docs/SETUP.md before using scripts/bake-buildings.py (v2/v3 mismatch).
 [[r2_buckets]]
 binding = "HCMC_TILES"
 bucket_name = "hcmc-tiles"

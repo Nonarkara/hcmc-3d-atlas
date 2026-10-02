@@ -1,0 +1,16 @@
+# Local-only development: no account, routes, or scheduled triggers.
+# The browser/live API routes still use external map and dashboard services.
+name = "hcmc-3d-atlas-local"
+main = "src/index.ts"
+compatibility_date = "2026-08-26"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+
+[[r2_buckets]]
+binding = "HCMC_TILES"
+bucket_name = "hcmc-tiles-local"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
