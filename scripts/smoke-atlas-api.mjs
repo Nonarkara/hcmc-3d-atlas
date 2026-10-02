@@ -71,6 +71,10 @@ async function get(path) {
     check("/api/risk returns score in range", r.status === 200 && Number.isFinite(r.body?.score) && r.body.score >= 0 && r.body.score <= 100, `${r.status} score=${r.body?.score}`);
     check("/api/risk reads pm25, not an empty object", Number.isFinite(r.body?.factors?.pm25), `pm25=${r.body?.factors?.pm25}`);
   }
+  {
+    const r = await get("/api/traffic");
+    check("traffic exposes observation freshness", r.status === 200 && typeof r.body?.sensorFreshness?.stale === "boolean" && Array.isArray(r.body?.sensors) && r.body.sensors.every(s => typeof s.stale === "boolean"), `${r.status} stale=${r.body?.sensorFreshness?.stale}`);
+  }
   // 10: Out-of-bbox — 400
   {
     const r = await get("/api/atlas/at-this-point?lng=0&lat=0");

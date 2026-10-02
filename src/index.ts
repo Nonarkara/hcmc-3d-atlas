@@ -268,6 +268,9 @@ interface SensorReading {
 }
 
 interface SensorRow {
+  name?: string;
+  nameVi?: string;
+  unit?: string;
   id?: string;
   lat?: number;
   lon?: number;
@@ -875,6 +878,7 @@ async function handleTraffic(): Promise<Response> {
     }>("/api/public-cameras", 60),
   ]);
   const rows = sensorRows(sensors);
+  const feedStale = sensorFeedStale(sensors, rows);
 
   return jsonResponse({
     tool: "traffic",
@@ -883,10 +887,16 @@ async function handleTraffic(): Promise<Response> {
       id: row.id ?? row.latestReading?.sensorId ?? null,
       lat: row.lat ?? null,
       lng: row.lng ?? row.lon ?? null,
+      label: row.name ?? row.nameVi ?? row.id ?? null,
+      unit: row.unit ?? null,
+      stale: feedStale || !row.latestReading?.observedAt
+        || !Number.isFinite(Date.parse(row.latestReading.observedAt))
+        || Date.now() - Date.parse(row.latestReading.observedAt) > 6 * 60 * 60 * 1000,
       status: sensorStatus(row),
       observedAt: row.latestReading?.observedAt ?? null,
       value: row.latestReading?.value ?? null,
     })),
+    sensorFreshness: { stale: feedStale, observedAt: sensorObservedAt(sensors, rows) },
     metro: vehicleRows(metro, "metro").map(publicVehicle),
     buses: vehicleRows(buses, "bus").map(publicVehicle),
     cameras: cameras ?? { verifiedLiveCount: 0, expectedVerifiedFeeds: 0 },

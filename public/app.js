@@ -45,7 +45,7 @@ let mapInstance = null;
 // Build tag sent to the parent dashboard in the `hcmc-atlas` ready
 // postMessage. `scripts/stamp-build-id.mjs` rewrites this on every
 // deploy so the dashboard can detect a stale iframe bundle.
-const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790849240-d209d01";
+const ATLAS_BUILD_TAG = "hcmc-atlas-20261001-1790881086-22050a9";
 // Append a build-tag query string to the PMTiles URLs so every deploy
 // busts Cloudflare's edge cache. Without this, the first GET (which the
 // protocol handler makes without a Range header) gets cached as 200 OK
@@ -794,56 +794,7 @@ function addLiveSensors() {
     },
   });
 
-  // Map a feed sensor to a circle color from its current reading.
-  function colorFor(reading) {
-    if (!reading || !reading.value && reading.value !== 0) return "#9ca3af";
-    if (reading.status === "alert") return "#ef4444";
-    if (reading.status === "warning") return "#f59e0b";
-    return "#22c55e";
-  }
-  function statusFor(reading, type) {
-    if (!reading) return "stale";
-    const v = reading.value;
-    if (type === "water_level" && typeof v === "number" && v >= 30) return "alert";
-    if (type === "water_level" && typeof v === "number" && v >= 15) return "warning";
-    if (type === "flow_rate" && typeof v === "number" && v <= 100) return "alert";
-    return reading.status || "normal";
-  }
 
-  async function load() {
-    try {
-      const r = await fetch("https://hcmc.nonarkara.org/api/hcmc/vntt-sensors", { cache: "no-store" });
-      if (!r.ok) throw new Error("vntt " + r.status);
-      const j = await r.json();
-      const sensors = (j.sensors || []).filter(function (s) {
-        return Number.isFinite(s.lng) && Number.isFinite(s.lat);
-      });
-      const features = sensors.map(function (s) {
-        const r2 = s.latestReading || {};
-        return {
-          type: "Feature",
-          properties: {
-            id: s.id,
-            label: s.name || s.nameVi || s.id,
-            type: s.type,
-            unit: s.unit,
-            value: r2.value,
-            status: statusFor(r2, s.type),
-            provenance: j.provenance && j.provenance.tier,
-          },
-          geometry: { type: "Point", coordinates: [s.lng, s.lat] },
-        };
-      });
-      const src = mapInstance.getSource("live-sensors-src");
-      if (src && typeof src.setData === "function") src.setData({ type: "FeatureCollection", features: features });
-    } catch (e) {
-      console.warn("[atlas] live sensors fetch failed:", e.message);
-    }
-  }
-  load();
-  // Refresh every 60s.
-  setInterval(load, 60000);
-  void colorFor; // reserved for future styling refinements
 }
 
 function applyAllLayers() {
@@ -903,7 +854,9 @@ async function refreshLiveOverlay() {
           type: "Feature",
           properties: {
             id: r.id,
-            status: r.status || "unknown",
+            label: r.label || r.id,
+            unit: r.unit,
+            status: r.stale ? "stale" : r.status || "unknown",
             value: r.value,
             observedAt: r.observedAt,
             tier: data.provenance && data.provenance.sensors && data.provenance.sensors.tier,
@@ -914,7 +867,7 @@ async function refreshLiveOverlay() {
     });
   }
   const sensorNote = data.provenance && data.provenance.sensors && data.provenance.sensors.note;
-  setToggleLabel("atlas-sensor-label", sensorNote && /stale/i.test(sensorNote) ? "VNTT sensors · stale" : "VNTT sensors");
+  setToggleLabel("atlas-sensor-label", data.sensorFreshness?.stale || sensorNote && /stale/i.test(sensorNote) ? "VNTT sensors · stale" : "VNTT sensors");
 
   const busSrc = mapInstance.getSource("bus-stops-src");
   if (busSrc) {
