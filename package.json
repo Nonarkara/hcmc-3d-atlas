@@ -3,16 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Ho Chi Minh City 3D atlas — in-browser viewer with quick-jump to the six governor corridors, on Cloudflare Workers. Reusable 3D city data for HCMC dashboards.",
+  "description": "Ho Chi Minh City 3D atlas \u2014 in-browser viewer with quick-jump to the six governor corridors, on Cloudflare Workers. Reusable 3D city data for HCMC dashboards.",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --local --config wrangler.local.toml",
     "stamp": "node scripts/stamp-build-id.mjs",
     "deploy": "node scripts/stamp-build-id.mjs && wrangler deploy",
     "deploy:live": "bash scripts/deploy-live.sh",
     "typecheck": "tsc --noEmit",
     "verify": "node scripts/verify-local.mjs",
     "smoke": "node scripts/smoke-atlas.mjs",
-    "smoke:api": "node scripts/smoke-atlas-api.mjs"
+    "smoke:api": "node scripts/smoke-atlas-api.mjs",
+    "test": "node --test test/*.test.mjs",
+    "build:check": "wrangler deploy --dry-run --config wrangler.local.toml --outdir out/worker"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260702.1",
@@ -21,5 +23,8 @@
   },
   "dependencies": {
     "pmtiles": "^4.4.1"
+  },
+  "engines": {
+    "node": ">=22.18.0"
   }
 }

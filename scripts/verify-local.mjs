@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // Local sanity-check — runs without network. Verifies that:
 //   • package.json parses
-//   • wrangler.toml parses
-//   • every JSON file in public/ is valid
+//   • wrangler.toml contains the expected markers
+//   • the curated areas and landmarks JSON are valid
 //   • the index.html references everything we expect
-//   • the worker source compiles cleanly to TypeScript via the
-//     `wrangler deploy --dry-run` shim (catches missing imports too)
+//   • important client/Worker source invariants are present
+// This is a text/data sanity check, not a compiler or CSS parser. Run
+// npm run typecheck, npm test, and npm run build:check separately.
 
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -31,7 +32,7 @@ test("package.json parses", () => {
   if (!p.name) throw new Error("missing name");
 });
 
-test("wrangler.toml parses", () => {
+test("wrangler.toml has expected markers", () => {
   const w = readFileSync(resolve(ROOT, "wrangler.toml"), "utf-8");
   if (!w.includes("name =")) throw new Error("missing worker name");
   if (!w.includes("[[r2_buckets]]")) throw new Error("missing R2 binding");
@@ -57,14 +58,14 @@ test("public/hcmc-areas.json parses + 12 areas", () => {
   if (a.areas.length !== 12) throw new Error(`expected 12 areas, got ${a.areas.length}`);
 });
 
-test("public/style.css parses + has root tokens", () => {
+test("public/style.css has root tokens", () => {
   const css = readFileSync(resolve(ROOT, "public/style.css"), "utf-8");
   if (!css.includes("--bg:")) throw new Error("missing --bg token");
   if (!css.includes("--ink:")) throw new Error("missing --ink token");
   if (!css.includes("--amber:")) throw new Error("missing --amber token");
 });
 
-test("public/app.js parses as JS (basic syntax)", () => {
+test("public/app.js has expected source markers", () => {
   const code = readFileSync(resolve(ROOT, "public/app.js"), "utf-8");
   if (!code.includes("__maplibregl__.Map")) throw new Error("missing maplibregl Map usage");
   if (!code.includes("refreshLiveOverlay")) throw new Error("missing refreshLiveOverlay");
@@ -112,7 +113,7 @@ test("index.html does not preload whole PMTiles archives", () => {
   if (/rel="preload"[^>]*\.pmtiles/.test(html)) throw new Error("preload pulls the entire archive");
 });
 
-test("src/index.ts parses + has key handlers", () => {
+test("src/index.ts has key handlers", () => {
   const ts = readFileSync(resolve(ROOT, "src/index.ts"), "utf-8");
   if (!ts.includes("/api/atlas/areas")) throw new Error("missing /api/atlas/areas handler");
   if (!ts.includes("servePmtilesFromR2")) throw new Error("missing PMTiles passthrough");
