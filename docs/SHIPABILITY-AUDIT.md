@@ -45,3 +45,5 @@ Local verification: TypeScript passed; 12 source checks and all four behavioral 
 Palette plate 325 supplies the lacquer red, ochre, pale yellow and deep green source colors. Screen adaptations suggest Vietnamese yellow plaster and lacquer; they do not claim a historical Vietnamese origin for Wada’s palette. Palette attribution and source licenses are recorded in THIRD_PARTY_NOTICES.md.
 
 Release verification is performed by deploy:live against the exact stamped build, archive Range responses and API contracts. An independent automated accessibility audit, human usability test and physical-device test remain unverified.
+
+Live release verified 3 October 2026: `hcmc-atlas-20261003-1791037842-f8051c1`, Cloudflare version `35aaca8a-3986-4ece-bad7-d284446a160a`. Exact-build smoke passed 14/14; API smoke passed 13/13. Live CSP and security headers confirmed. Browser showed the rendered city and selected dark appearance with no console errors. Preview: `docs/atlas-palette-preview.jpg`.
