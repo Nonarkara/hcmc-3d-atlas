@@ -12,7 +12,7 @@
 
 import { strict as assert } from "node:assert";
 
-const BASE = process.env.ATLAS_BASE || "https://hcmc-3d-atlas.drnon.workers.dev";
+const BASE = process.env.ATLAS_BASE || "https://atlas.hcmc.nonarkara.org";
 
 async function fetchText(path) {
   const r = await fetch(BASE + path);
@@ -40,7 +40,7 @@ async function main() {
 
   const html = await fetchText("/");
   const appJs = await fetchText(
-    html.match(/src="\/app\.js\?v=[^"]+"/)[0].replace(/src="|"/g, ""),
+    html.match(/data-app="\/app\.js\?v=[^"]+"/)[0].replace(/data-app="|"/g, ""),
   );
 
   await check("index.html references app.js with cache-buster", async () => {
@@ -62,6 +62,15 @@ async function main() {
       /const ATLAS_BUILD_TAG = "hcmc-atlas-\d{8}-\d+-[0-9a-zA-Z_-]+";/,
       "ATLAS_BUILD_TAG should look like hcmc-atlas-YYYYMMDD-<epoch>-<sha|local>",
     );
+  });
+
+  await check("deployed build matches HTML and release stamp", async () => {
+    const tag = appJs.match(/const ATLAS_BUILD_TAG = "([^"]+)"/)[1];
+    assert.ok(html.includes('/app.js?v=' + tag));
+    assert.ok(html.includes('/style.css?v=' + tag));
+    assert.ok(html.includes('/theme.js?v=' + tag));
+    assert.ok((await fetchText('/theme.js?v=' + tag)).includes('hcmc-atlas-theme'));
+    if (process.env.EXPECTED_BUILD) assert.equal(tag, process.env.EXPECTED_BUILD);
   });
 
   await check("app.js adds layers on style.load, not after every tile", async () => {

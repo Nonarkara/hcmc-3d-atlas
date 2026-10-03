@@ -4,9 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HCMCx 3D Atlas -- Hồ Chí Minh City block by block</title>
-  <meta name="description" content="Live 3D atlas of Ho Chi Minh City. 4 million buildings at real height from satellite and OpenStreetMap, the waterways, Metro Line 1, landmarks, and live sensors -- all extruded, all clickable." />
+  <meta name="description" content="Explore Ho Chi Minh City in 3D: 4 million building footprints with measured or estimated heights, reference transit and flood areas, modeled air quality, and source-labeled sensor readings." />
+  <script src="/theme.js?v=hcmc-atlas-20261002-1790951378-5550d23"></script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <link href="/vendor/maplibre-6.4.1/maplibre-gl.css" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css?v=hcmc-atlas-20261002-1790951378-5550d23" />
 </head>
 <body data-surface="hcmc-dashboard">
@@ -15,19 +16,27 @@
       <div class="atlas-header-meta">
         <span class="atlas-eyebrow">3D Atlas -- HCMC -- 4.0 M buildings</span>
         <h1 class="atlas-title">
-          <span class="atlas-title-desk">Ho Chi Minh City, live, block by block</span>
-          <span class="atlas-title-phone">TP.HCM -- live 3D atlas</span>
+          <span class="atlas-title-desk">Ho Chi Minh City, block by block</span>
+          <span class="atlas-title-phone">TP.HCM -- 3D atlas</span>
         </h1>
         <p class="atlas-kicker">
-          Every building in the metro area -- 4 013 181 footprints traced from satellite imagery and OpenStreetMap -- each at its own height, measured from space, on Esri satellite with waterways, Metro Line 1 and VNTT sensors. The light is the real sun over Saigon right now.
+          4 013 181 building features from Overture Maps, with tagged heights, satellite estimates, or type defaults. Explore the skyline on Esri imagery with reference waterways, Metro Line 1, and source-labeled data overlays. Lighting follows the calculated sun position; night lighting is illustrative.
           Click any building to see its height and where that number came from.
         </p>
+        <p class="atlas-maturity">Public demo · reference map with modeled and stale feeds</p>
       </div>
       <nav class="atlas-header-nav" aria-label="Atlas navigation">
         <a href="#atlas-areas">Quick jump</a>
-        <a href="#atlas-inspect">Inspect</a>
+        <a href="#atlas-data">Data &amp; sources</a>
         <a href="https://github.com/Nonarkara/hcmc-3d-atlas" target="_blank" rel="noopener">Source</a>
         <a href="https://hcmc.nonarkara.org" class="atlas-nav-sibling" title="The HCMC war-room dashboard">War room</a>
+        <label class="atlas-theme-control" for="atlas-theme">Appearance
+          <select id="atlas-theme" aria-label="Appearance">
+            <option value="dark">Dark · lacquer green</option>
+            <option value="light">Light · ochre paper</option>
+            <option value="contrast">High contrast</option>
+          </select>
+        </label>
       </nav>
     </header>
 
@@ -46,49 +55,50 @@
       <aside class="atlas-layers" aria-label="Map layers">
         <details>
         <summary class="atlas-panel-summary"><span class="atlas-eyebrow">Layers</span></summary>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="hcmc-buildings">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="hcmc-buildings">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--buildings"></span>
           <span>3D buildings</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="waterways-line">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="waterways-line">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--water"></span>
           <span>Waterways</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="metro-line">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="metro-line">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--metro"></span>
           <span>Metro Line 1</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="metro-stations">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="metro-stations">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--station"></span>
           <span>Metro stations</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="bus-stops">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="bus-stops">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--bus"></span>
-          <span id="atlas-bus-label">Buses</span>
+          <span id="atlas-bus-label">Buses · checking</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="hcmc-landmarks-3d">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="hcmc-landmarks-3d">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--poi"></span>
           <span>Hero landmarks</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="civic-pois">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="civic-pois">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--poi"></span>
           <span>Landmarks</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="flood-zones">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="flood-zones">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--flood"></span>
-          <span>Flood zones</span>
+          <span>Flood areas · indicative</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="aqi-points">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="aqi-points">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--aqi"></span>
-          <span>Air quality (AQI)</span>
+          <span id="atlas-aqi-label">Air quality · checking</span>
         </button>
-        <button type="button" class="atlas-toggle atlas-toggle--on" data-layer-toggle="live-sensors">
+        <button type="button" class="atlas-toggle atlas-toggle--on" aria-pressed="true" data-layer-toggle="live-sensors">
           <span class="atlas-toggle-swatch atlas-toggle-swatch--sensor"></span>
-          <span id="atlas-sensor-label">VNTT sensors</span>
+          <span id="atlas-sensor-label">VNTT sensors · checking</span>
         </button>
 
+        <button type="button" id="atlas-orbit-btn" aria-pressed="false" class="atlas-flyover-btn">Enable orbit</button>
         <p class="atlas-eyebrow atlas-eyebrow--mt">Basemap</p>
-        <button type="button" class="atlas-basemap-btn atlas-basemap-btn--active" data-bas="esri">
+        <button type="button" aria-pressed="true" class="atlas-basemap-btn atlas-basemap-btn--active" data-bas="esri">
           Esri satellite
         </button>
         </details>
@@ -96,6 +106,7 @@
 
       <!-- Inspect card (right) -->
       <aside class="atlas-inspect" id="atlas-inspect" aria-live="polite" hidden>
+        <button type="button" id="atlas-inspect-close" class="atlas-inspect-close">Close inspect</button>
         <p class="atlas-eyebrow">Inspect</p>
         <h2 class="atlas-data-heading">Click any building</h2>
         <p class="atlas-inspect-blurb" id="atlas-inspect-hint">
@@ -114,29 +125,54 @@
             <span class="atlas-eyebrow">Quick jump</span>
             <span class="atlas-quick-heading">12 places</span>
           </summary>
-          <div id="atlas-area-grid" class="atlas-area-grid" role="list" aria-label="HCMC key areas"></div>
+          <div id="atlas-area-grid" class="atlas-area-grid" role="group" aria-label="HCMC key areas"></div>
         </details>
-        <button type="button" id="atlas-flyover-btn" class="atlas-flyover-btn">Start flyover</button>
+        <button type="button" id="atlas-flyover-btn" aria-pressed="false" class="atlas-flyover-btn">Start flyover</button>
       </section>
     </div>
+
+    <section class="atlas-data" id="atlas-data" aria-labelledby="atlas-data-heading">
+      <h2 id="atlas-data-heading">Data &amp; sources</h2>
+      <p id="atlas-map-status" role="status">Map loading. The text data below remains available if tiles fail.</p>
+      <p>Buildings appear from zoom 12 and are simplified at wider views. Heights are in metres, but most are estimates. This demo supports exploration; it does not show verified street-level flood conditions.</p>
+      <details>
+        <summary>Sensor readings</summary>
+        <p id="atlas-sensor-status" role="status">Checking the VNTT feed…</p>
+        <div class="atlas-table-wrap"><table><caption>VNTT readings and observation age</caption><thead><tr><th scope="col">Location</th><th scope="col">Reading</th><th scope="col">Source, tier &amp; age</th></tr></thead><tbody id="atlas-sensor-rows"></tbody></table></div>
+      </details>
+      <details>
+        <summary>Air quality</summary>
+        <p id="atlas-aqi-status" role="status">Checking air-quality data…</p>
+        <p>Open-Meteo / CAMS values are model estimates sampled at these locations, not local sensor measurements. AQI scale is supplied by the upstream feed.</p>
+        <div class="atlas-table-wrap"><table><caption>Air-quality estimates and valid time</caption><thead><tr><th scope="col">Location</th><th scope="col">Reading</th><th scope="col">Source, tier &amp; age</th></tr></thead><tbody id="atlas-aqi-rows"></tbody></table></div>
+      </details>
+      <details>
+        <summary>Reference features &amp; map limits</summary>
+        <p>Flood areas are approximate atlas sketches of recurring-flood locations, not surveyed boundaries or current flood extents. Their source dates are unverified. Metro Line 1 is a schematic joining curated station points, not track geometry. Bus positions are labeled with their upstream tier; simulated positions are not vehicle tracking.</p>
+        <p id="atlas-bus-status" role="status">Checking bus feed…</p>
+        <div id="atlas-reference-list">Loading reference features…</div>
+      </details>
+      <noscript><p>JavaScript is required for the map and refreshed tables. Read the <a href="/hcmc-landmarks.geojson">landmark records</a>, <a href="/hcmc-flood-zones.geojson">flood-area sketches</a>, <a href="/hcmc-areas.json">area records</a>, or <a href="/api/traffic">traffic feed</a> directly.</p></noscript>
+    </section>
 
     <footer class="atlas-footer">
       <p>
         Footprints: <strong>Overture Maps</strong> 2026-09-23 -- Microsoft ML Buildings 2 211 519, Google Open Buildings 1 685 646, OpenStreetMap 116 016.
-        Heights in real metres, never scaled: 4 238 measured (OSM height or floor count); 3 195 695 per building from <strong>Google Open Buildings 2.5D Temporal</strong> (2023, the 75th-percentile satellite height inside each footprint); 418 807 from <strong>GHSL</strong> built-up height (EU JRC, 2018, 100 m area average) where Google has none; 394 441 at a type default with no satellite signal. Satellite heights are capped at four times a footprint's width.
-        The satellite model under-reads the tallest towers (it saturates near 100 m), so landmarks use OSM footprints and building parts at published heights (CTBUH or developer), cited per feature.
-        Basemap <strong>Esri World Imagery</strong>; live sensors <strong>VNTT</strong>. Tiles streamed from R2 by Range request.
+        Heights in real metres, never scaled: 360 tagged heights (OSM / survey); 3 878 estimates from floor count × 3.3 m; 3 195 695 per building from <strong>Google Open Buildings 2.5D Temporal</strong> (2023, the 75th-percentile satellite height inside each footprint); 418 807 from <strong>GHSL</strong> built-up height (EU JRC, 2018, 100 m area average) where Google has none; 394 441 at a type default with no satellite signal. Satellite heights are capped at max(6 m, four times the square root of footprint area). Counts describe the baked dataset; tile simplification omits some small features.
+        The satellite model under-reads the tallest towers (it saturates near 100 m), so landmarks use OSM footprints with curated part heights informed by published tower references (CTBUH or developer). Individual part heights are not survey measurements.
+        Basemap <strong>Esri World Imagery</strong>; sensor records <strong>VNTT</strong>; air quality <strong>Open-Meteo / CAMS</strong>. Tiles streamed from R2 by Range request. Data keeps its source terms: <a href="https://docs.overturemaps.org/attribution/">Overture attribution</a>, <a href="https://www.openstreetmap.org/copyright">OpenStreetMap / ODbL</a>, <a href="https://open-meteo.com/en/docs/air-quality-api">Open-Meteo / CAMS</a>.
       </p>
       <p class="atlas-footer-meta">
-        HCMCx 3D Atlas -- atlas.hcmc.nonarkara.org -- <span>CC-BY 4.0</span>
+        HCMCx 3D Atlas -- atlas.hcmc.nonarkara.org -- <span>Source-specific data terms</span>
+        · Colour: <a href="https://colors.nonarkara.org/#plate-325">Palette / Wada 325</a>, adapted for screen contrast.
       </p>
     </footer>
   </main>
 
   <!-- MapLibre + PMTiles are loaded as UMD scripts so they attach to window.
        Defer is required because the JS uses globals from these. -->
-  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js" defer></script>
-  <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js" defer></script>
-  <script src="/app.js?v=hcmc-atlas-20261002-1790951378-5550d23" defer></script>
+
+  <script src="https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js" integrity="sha384-iS2/cbFYol4NsEeda4mW6N/8wPMOT6pv2eY+GNYSJRqVC4nbJECP1+mg6D2T8wT/" crossorigin="anonymous" defer></script>
+  <script src="/loader.js" data-app="/app.js?v=hcmc-atlas-20261002-1790951378-5550d23" defer></script>
 </body>
 </html>

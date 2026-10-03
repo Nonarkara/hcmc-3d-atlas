@@ -1,13 +1,13 @@
 // HCMCx 3D Atlas -- full MapLibre client.
 //
 // Loads curated areas, renders the city in 3D, lets the operator click
-// any building for risk + nearest area, and overlays live sensors / metro /
+// any building for its height provenance, and overlays sensors / metro /
 // buses proxied from hcmc.nonarkara.org. Same shape as bkk-3d-atlas.app.js
 // but with the HCMC governor-corridor areas and PMTiles-backed buildings,
 // waterways, metro line 1, and 14 stations.
 
-// MapLibre + pmtiles are loaded as UMD scripts (see index.html) and
-// attach globals directly to `window` as `maplibregl` and `pmtiles`.
+// loader.js imports the pinned MapLibre module before this client.
+// PMTiles uses its pinned UMD global.
 const __maplibregl__ = window.maplibregl;
 const __pmtiles__ = window.pmtiles;
 
@@ -18,7 +18,7 @@ if (!__maplibregl__ || !__pmtiles__) {
       '<div class="atlas-map-loading-inner">' +
       '<span class="atlas-map-loading-glyph">Hx</span>' +
       '<p class="atlas-map-loading-line">MapLibre failed to load</p>' +
-      '<p class="atlas-map-loading-sub">Check the console -- script order or CSP.</p>' +
+      '<p class="atlas-map-loading-sub">Map libraries are unavailable. Reload to retry, or use Data &amp; sources below.</p>' +
       "</div>";
   }
   console.error("maplibregl/pmtiles not on window -- script order issue");
@@ -63,6 +63,36 @@ let currentAreaId = null;
 let flyoverTimer = null;
 let inspectFeature = null;
 const liveCache = new Map();
+const liveRequests = new Map();
+let lastAirQuality = [];
+
+// Interface/map materials adapt Wada 325; hazard colors retain their meaning.
+const MAP_THEMES = {
+  dark: { buildings: ["#88967b", "#b9bd90", "#dfcc8a", "#fbe6a0"], accent: "#e2b540", civic: "#d8b96a", opacity: 0.8, saturation: -0.45 },
+  light: { buildings: ["#7d8c71", "#aeb387", "#dcc88b", "#fbe6a0"], accent: "#e2b540", civic: "#cda746", opacity: 0.65, saturation: -0.6 },
+  contrast: { buildings: ["#afbaa4", "#d9dfc3", "#fbe6a0", "#fffdf2"], accent: "#ffe17a", civic: "#ffe17a", opacity: 0.45, saturation: -1 },
+};
+function mapTheme() { return MAP_THEMES[document.documentElement.dataset.theme] || MAP_THEMES.dark; }
+function buildingThemeColor() {
+  const colors = mapTheme().buildings;
+  return ["interpolate", ["linear"], HEIGHT_GET, 6, colors[0], 20, colors[1], 60, colors[2], 150, colors[3]];
+}
+function applyMapTheme() {
+  if (!mapInstance) return;
+  const palette = mapTheme();
+  const paints = {
+    "esri-imagery": { "raster-opacity": palette.opacity, "raster-saturation": palette.saturation },
+    "hcmc-buildings": { "fill-extrusion-color": ["case", ["boolean", ["feature-state", "selected"], false], palette.accent, buildingThemeColor()] },
+    "hcmc-buildings-outline": { "line-color": palette.accent },
+    "hcmc-landmarks-3d": { "fill-extrusion-color": ["match", ["get", "category"], "civic", palette.civic, palette.accent] },
+    "hcmc-landmarks-outline": { "line-color": palette.accent },
+  };
+  Object.keys(paints).forEach(function (id) {
+    if (!mapInstance.getLayer(id)) return;
+    Object.keys(paints[id]).forEach(function (property) { mapInstance.setPaintProperty(id, property, paints[id][property]); });
+  });
+}
+window.addEventListener("atlas:theme", applyMapTheme);
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function escapeHtml(value) {
@@ -101,9 +131,9 @@ function fmtNum(n, digits) {
 function hideLoading() {
   const el = document.getElementById("atlas-map-loading");
   if (!el) return;
-  el.style.transition = "opacity 320ms ease";
+  el.style.transition = "opacity 220ms ease-out";
   el.style.opacity = "0";
-  setTimeout(function () { el.style.display = "none"; }, 360);
+  setTimeout(function () { el.style.display = "none"; }, 240);
 }
 
 function showToast(msg, ttl) {
@@ -112,6 +142,7 @@ function showToast(msg, ttl) {
     el = document.createElement("div");
     el.id = "atlas-toast";
     el.className = "atlas-toast";
+    el.setAttribute("role", "status");
     document.body.appendChild(el);
   }
   el.textContent = msg;
@@ -123,12 +154,14 @@ function showToast(msg, ttl) {
 }
 
 // Register pmtiles:// protocol once
-if (__pmtiles__) {
+if (__pmtiles__ && __maplibregl__) {
   const pmtilesProtocol = new __pmtiles__.Protocol();
   __maplibregl__.addProtocol("pmtiles", pmtilesProtocol.tile);
 }
 
 // ── Map setup ──────────────────────────────────────────────────────────────
+try {
+  if (__maplibregl__ && __pmtiles__) {
 mapInstance = new __maplibregl__.Map({
   container: "atlas-map",
   style: {
@@ -151,7 +184,7 @@ mapInstance = new __maplibregl__.Map({
       type: "raster",
       source: "esri",
       // Muted like bkk-3d-atlas so the buildings, not the imagery, carry the eye.
-      paint: { "raster-opacity": 0.8, "raster-saturation": -0.45, "raster-contrast": 0.05 },
+      paint: { "raster-opacity": mapTheme().opacity, "raster-saturation": mapTheme().saturation, "raster-contrast": 0.05 },
     }],
   },
   center: HCMC_CENTER,
@@ -163,8 +196,17 @@ mapInstance = new __maplibregl__.Map({
   renderWorldCopies: false,
   maxPitch: 70,
   hash: false,
-  attributionControl: { customAttribution: "Heights GHSL (EC JRC) - VNTT sensors" },
+  attributionControl: { customAttribution: "Heights: Google 2.5D / GHSL / OSM / estimates" },
 });
+
+  }
+} catch (e) {
+  console.warn("[atlas] map unavailable:", e.message);
+  const el = document.getElementById("atlas-map-loading");
+  if (el) el.textContent = "3D rendering is unavailable on this device. Use Data & sources below.";
+}
+
+if (mapInstance) {
 
 requestAnimationFrame(function () { mapInstance.resize(); });
 
@@ -173,10 +215,7 @@ requestAnimationFrame(function () { mapInstance.resize(); });
 // fired, and isStyleLoaded() stays false while satellite tiles are still
 // loading -- so waiting for the event *after* the fetch could wait forever
 // and the city layers would randomly never appear.
-const styleReady = new Promise(function (resolve) {
-  if (mapInstance.style && mapInstance.style._loaded) resolve();
-  else mapInstance.once("style.load", resolve);
-});
+
 
 // Hide loading overlay once MapLibre has rendered at least one tile.
 // A stuck overlay is worse than a brief flash, so we hide on:
@@ -195,13 +234,18 @@ function hideLoadingIfReady(force) {
   loadingHidden = true;
   hideLoading();
 }
-mapInstance.on("idle", hideLoadingIfReady);
+mapInstance.on("idle", function () {
+  hideLoadingIfReady();
+  if (!mapInstance.__atlasTileError) setToggleLabel("atlas-map-status", "Map ready. Buildings appear from zoom 12; choose a place in Quick jump.");
+});
 mapInstance.on("render", function () { if (mapInstance.loaded()) hideLoadingIfReady(); });
 mapInstance.on("error", function (e) {
   // Log it so the developer can see why a tile failed, but never let it
   // block the loading overlay -- the user wants to interact with the rest
   // of the map even if one source is broken.
+  mapInstance.__atlasTileError = true;
   if (e && e.error) console.warn("[atlas] tile error:", e.error.message || e.error);
+  setToggleLabel("atlas-map-status", "Some map data could not load. Reload to retry; the text data below remains available.");
   hideLoadingIfReady(true);
 });
 setTimeout(function () { hideLoadingIfReady(true); }, 4500);
@@ -211,6 +255,13 @@ mapInstance.addControl(
   "bottom-right",
 );
 mapInstance.addControl(new __maplibregl__.ScaleControl({ unit: "metric" }), "bottom-left");
+
+}
+
+const styleReady = new Promise(function (resolve) {
+  if (!mapInstance || mapInstance.style && mapInstance.style._loaded) resolve();
+  else mapInstance.once("style.load", resolve);
+});
 
 // ── Building height + paint ────────────────────────────────────────────────
 // Real metres, no multiplier. Same clamp as bkk-3d-atlas: heights outside
@@ -244,12 +295,12 @@ const BUILDING_COLOR = [
 const BUILDING_OPACITY = ["interpolate", ["linear"], ["zoom"], 11, 0.6, 13, 0.88, 14.5, 1];
 
 const HEIGHT_SOURCE_LABEL = {
-  measured: "measured (OSM / survey)",
-  floors: "floor count x 3.3 m",
+  measured: "tagged (OSM / survey; date unverified)",
+  floors: "estimate: floor count × 3.3 m; date unverified",
   google: "satellite, this building (Google Open Buildings 2.5D, 2023)",
   ghsl: "satellite, 100 m area average (GHSL, 2018)",
   satellite: "satellite, 100 m area average (GHSL, 2018)",
-  estimated: "estimated from building type",
+  estimated: "type default; no measurement; date unverified",
 };
 
 const FOOTPRINT_SOURCE_LABEL = {
@@ -536,7 +587,7 @@ async function addFloodZones() {
   mapInstance.addSource("hcmc-flood-zones-src", {
     type: "geojson",
     data: { type: "FeatureCollection", features: features },
-    attribution: "(c) HCMC SCFC, triều cường reporting",
+    attribution: "Indicative flood areas: atlas curation, not surveyed extents",
   });
   // Fill — muted red, semi-transparent so satellite shows through.
   mapInstance.addLayer({
@@ -590,42 +641,18 @@ async function addFloodZones() {
       "text-halo-width": 1,
     },
   });
+  setLayerVisible("flood-zones", layerVisibility["flood-zones"] !== false);
 }
 
 // ── Air quality / aerosol (Open-Meteo) ────────────────────────────────────
 // Live aerosol points proxied from the dashboard's /api/air-quality
 // endpoint. Color follows AQI category, size scales with PM2.5.
 async function addAirQuality() {
-  let points;
-  try {
-    const r = await fetch("https://hcmc.nonarkara.org/api/air-quality", { cache: "no-store" });
-    if (!r.ok) throw new Error("air quality " + r.status);
-    points = await r.json();
-  } catch (e) {
-    console.warn("[atlas] air quality unavailable:", e.message);
-    return;
-  }
-  if (!Array.isArray(points) || !points.length) return;
-  const features = points
-    .filter(function (p) { return Number.isFinite(p.lng) && Number.isFinite(p.lat); })
-    .map(function (p) {
-      const aqi = p.aqi || 0;
-      return {
-        type: "Feature",
-        properties: {
-          label: p.label,
-          aqi: aqi,
-          pm25: p.pm25,
-          category: p.category,
-          source: p.source,
-        },
-        geometry: { type: "Point", coordinates: [p.lng, p.lat] },
-      };
-    });
+  const features = [];
   mapInstance.addSource("hcmc-aqi-src", {
     type: "geojson",
     data: { type: "FeatureCollection", features: features },
-    attribution: "(c) HCMC air quality feed (Open-Meteo fallback)",
+    attribution: "Air-quality model: CAMS via Open-Meteo",
   });
   mapInstance.addLayer({
     id: "aqi-points",
@@ -644,6 +671,7 @@ async function addAirQuality() {
         "Good", "#22c55e",
         "Moderate", "#facc15",
         "Unhealthy for Sensitive", "#f97316",
+        "Unhealthy for Sensitive Groups", "#f97316",
         "Unhealthy", "#ef4444",
         "Very Unhealthy", "#a21caf",
         "Hazardous", "#7f1d1d",
@@ -660,7 +688,7 @@ async function addAirQuality() {
     source: "hcmc-aqi-src",
     minzoom: 12,
     layout: {
-      "text-field": ["concat", ["to-string", ["round", ["get", "aqi"]], ], " AQI"],
+      "text-field": ["concat", ["to-string", ["round", ["get", "aqi"]]], " AQI · model"],
       "text-size": 10,
       "text-offset": [0, 1.6],
       "text-anchor": "top",
@@ -677,10 +705,8 @@ async function addAirQuality() {
 // ── Hero landmarks — actual 3D extrusions for Bitexco, Landmark 81, Notre Dame,
 // City Hall, etc. (hcmc-landmarks.geojson). The geometry is the real building
 // footprint; the height field is the published metres. The fill-extrusion
-// uses the same compressed power-curve as the residential fabric so a 262m
-// Bitexco reads as ~190m visual — proportional to its 8m neighbour without
-// breaking the skyline. Stays cream/gold so the icons pop above the warm
-// residential carpet.
+// uses real metre units for the curated part heights. Part geometry and
+// heights are a reference model, not an as-built survey.
 async function addHeroLandmarks() {
   let doc;
   try {
@@ -761,6 +787,8 @@ async function addHeroLandmarks() {
     },
   });
 
+  applyMapTheme();
+  setLayerVisible("hcmc-landmarks-3d", layerVisibility["hcmc-landmarks-3d"] !== false);
   // Inject the hero list into the inspect card hero enum so picking a building
   // near Bitexco surfaces the correct canonical record.
   window.__hcmcHeroLandmarks = features.map(function (f) {
@@ -807,6 +835,7 @@ function applyAllLayers() {
   addFloodZones();
   addAirQuality();
   addLiveSensors();
+  applyMapTheme();
   // Ground lines go under the extrusions so towers occlude them, instead of
   // the river and the metro line painting across building faces.
   ["waterways-line", "metro-line"].forEach(function (id) {
@@ -814,24 +843,98 @@ function applyAllLayers() {
   });
 }
 
+// ── Text evidence (available even when WebGL or map tiles fail) ───────────
+function observationStale(stamp, maxAge) {
+  const time = stamp ? Date.parse(stamp) : NaN;
+  return !Number.isFinite(time) || time > Date.now() + 5 * 60000 || Date.now() - time > maxAge;
+}
+function observationLabel(stamp) {
+  const time = stamp ? Date.parse(stamp) : NaN;
+  if (!Number.isFinite(time)) return "Observation time unknown";
+  if (time > Date.now() + 5 * 60000) return "Observation time is in the future; unverified";
+  const minutes = Math.max(0, Math.floor((Date.now() - time) / 60000));
+  const age = minutes < 60 ? minutes + " min" : minutes < 1440 ? Math.floor(minutes / 60) + " h" : Math.floor(minutes / 1440) + " d";
+  return age + " ago · " + new Date(time).toLocaleString("en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "medium", timeStyle: "short" }) + " ICT";
+}
+function evidenceCell(source, tier, stamp) {
+  return escapeHtml(source || "Source unknown") + " · " + escapeHtml(tier || "unverified") + "<small>" + escapeHtml(observationLabel(stamp)) + "</small>";
+}
+function renderSensorTable(rows, provenance, unavailable) {
+  const el = document.getElementById("atlas-sensor-rows");
+  if (!el) return;
+  el.innerHTML = rows.length ? rows.map(function (r) {
+    const stale = unavailable || r.stale || observationStale(r.observedAt, 6 * 3600000);
+    const value = Number.isFinite(r.value) ? fmtNum(r.value, 1) + " " + (r.unit || "unit unknown") : "Reading unavailable";
+    return "<tr><th scope=\"row\">" + escapeHtml(r.label || r.id) + "</th><td>" + escapeHtml(value) + "<small>" + escapeHtml(stale ? "Stale / unverified" : r.status || "Status unknown") + "</small></td><td>" + evidenceCell(provenance?.source, unavailable ? "last retrieved / unavailable" : provenance?.tier, r.observedAt) + "</td></tr>";
+  }).join("") : '<tr><td colspan="3">No sensor readings available.</td></tr>';
+  setToggleLabel("atlas-sensor-status", unavailable ? "Sensor feed unavailable. Any retained readings are last retrieved values, not current conditions." : rows.some(function (r) { return r.stale || observationStale(r.observedAt, 6 * 3600000); }) ? "Stale observations are retained for reference. They do not establish current flood conditions." : "Sensor records retrieved. Check each observation time and source tier.");
+}
+async function refreshAirQuality() {
+  const data = await fetchLive("/api/atlas/air-quality", 300);
+  const available = Array.isArray(data);
+  if (available) lastAirQuality = data.filter(function (p) {
+    return p && Number.isFinite(p.lng) && Number.isFinite(p.lat) && Number.isFinite(p.aqi) && p.aqi >= 0;
+  });
+  const rows = lastAirQuality;
+  const features = rows.map(function (p) {
+    const stale = !available || observationStale(p.observedAt, 3 * 3600000);
+    return { type: "Feature", properties: {
+      label: p.label, aqi: p.aqi, pm25: p.pm25, category: stale ? "stale" : p.category,
+      source: p.provenance?.source || p.source, tier: p.provenance?.tier || "unverified", observedAt: p.observedAt,
+    }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } };
+  });
+  const src = mapInstance && mapInstance.getSource("hcmc-aqi-src");
+  if (src) src.setData({ type: "FeatureCollection", features: features });
+  const el = document.getElementById("atlas-aqi-rows");
+  if (el) el.innerHTML = rows.length ? rows.map(function (p) {
+    const modeled = /open-meteo|cams/i.test(p.source || p.provenance?.source || "");
+    const tier = !available ? "last retrieved / unavailable" : observationStale(p.observedAt, 3 * 3600000) ? "stale" : modeled ? "modeled" : p.provenance?.tier || "unverified";
+    const pm25 = Number.isFinite(p.pm25) && p.pm25 >= 0 ? " · PM2.5 " + fmtNum(p.pm25, 1) + " µg/m³" : " · PM2.5 unavailable";
+    return '<tr><th scope="row">' + escapeHtml(p.label || "Unnamed location") + '</th><td>' + escapeHtml(Math.round(p.aqi) + " AQI" + pm25) + '<small>' + escapeHtml(p.category || "Category unknown") + '</small></td><td>' + evidenceCell(p.provenance?.source || p.source, tier, p.observedAt) + '</td></tr>';
+  }).join("") : '<tr><td colspan="3">No valid air-quality values available.</td></tr>';
+  setToggleLabel("atlas-aqi-label", available && rows.length ? "Air quality · model" : "Air quality · unavailable");
+  setToggleLabel("atlas-aqi-status", available && rows.length ? "Model estimates retrieved. Valid time and source appear with each value." : "Air-quality feed unavailable or invalid. Retained values, if any, are marked last retrieved.");
+}
+async function loadReferenceText() {
+  const [landmarks, flood] = await Promise.all([
+    fetchLive("/hcmc-landmarks.geojson", 3600), fetchLive("/hcmc-flood-zones.geojson", 3600),
+  ]);
+  const el = document.getElementById("atlas-reference-list");
+  if (!el) return;
+  const names = new Map();
+  if (Array.isArray(landmarks?.features)) landmarks.features.forEach(function (f) {
+    const p = f?.properties;
+    if (!p || !Number.isFinite(p.height)) return;
+    const prior = names.get(p.name);
+    if (!prior || p.height > prior.height) names.set(p.name, p);
+  });
+  const entries = Array.from(names.values()).map(function (p) {
+    return '<li>' + escapeHtml(p.name) + ': highest modeled part ' + escapeHtml(p.height) + ' m. Reference: ' + escapeHtml(p.source || "unknown") + '. Tier: curated model; reference date unverified.</li>';
+  });
+  if (Array.isArray(flood?.features)) flood.features.forEach(function (f) {
+    if (f?.properties) entries.push('<li>Flood reference area: ' + escapeHtml(f.properties.name_en || f.properties.name) + '. Approximate atlas sketch; date unverified.</li>');
+  });
+  el.innerHTML = entries.length ? '<ul class="atlas-reference-list">' + entries.join("") + '</ul>' : '<p>Reference files unavailable. Reload to retry.</p>';
+}
+
 // ── Live data fetchers (proxied via the dashboard Worker) ─────────────────
 async function fetchLive(endpoint, ttl) {
-  const cacheKey = "live:" + endpoint;
-  try {
-    const cached = liveCache.get(cacheKey);
-    if (cached && cached.expires > Date.now()) return cached.value;
-  } catch (e) {}
-  try {
-    const r = await fetch(ATLAS_BASE + endpoint, {
-      headers: { accept: "application/json" },
-    });
-    if (!r.ok) return null;
-    const data = await r.json();
-    liveCache.set(cacheKey, { value: data, expires: Date.now() + (ttl || 60) * 1000 });
-    return data;
-  } catch (e) {
-    return null;
-  }
+  const cached = liveCache.get(endpoint);
+  if (cached && cached.expires > Date.now()) return cached.value;
+  if (liveRequests.has(endpoint)) return liveRequests.get(endpoint);
+  const pending = (async function () {
+    try {
+      const r = await fetch(ATLAS_BASE + endpoint, {
+        headers: { accept: "application/json" }, signal: AbortSignal.timeout(8000),
+      });
+      if (!r.ok) return null;
+      const data = await r.json();
+      liveCache.set(endpoint, { value: data, expires: Date.now() + (ttl || 60) * 1000 });
+      return data;
+    } catch (e) { return null; }
+  })();
+  liveRequests.set(endpoint, pending);
+  try { return await pending; } finally { liveRequests.delete(endpoint); }
 }
 
 function setToggleLabel(id, text) {
@@ -840,11 +943,13 @@ function setToggleLabel(id, text) {
 }
 
 async function refreshLiveOverlay() {
-  const data = await fetchLive("/api/traffic", 30);
-  if (!data) return;
-  const sensorRows = data.sensors || [];
-  liveSensors = data;
-  const sensorSrc = mapInstance.getSource("live-sensors-src");
+  const received = await fetchLive("/api/traffic", 30);
+  const data = received && Array.isArray(received.sensors) && Array.isArray(received.buses) ? received : null;
+  if (data) liveSensors = data;
+  const sensorRows = Array.isArray(liveSensors.sensors) ? liveSensors.sensors : [];
+  const evidence = liveSensors.provenance?.sensors;
+  renderSensorTable(sensorRows, evidence, !data);
+  const sensorSrc = mapInstance && mapInstance.getSource("live-sensors-src");
   if (sensorSrc) {
     sensorSrc.setData({
       type: "FeatureCollection",
@@ -856,24 +961,24 @@ async function refreshLiveOverlay() {
             id: r.id,
             label: r.label || r.id,
             unit: r.unit,
-            status: r.stale ? "stale" : r.status || "unknown",
+            status: !data || r.stale || observationStale(r.observedAt, 6 * 3600000) ? "stale" : r.status || "unknown",
             value: r.value,
             observedAt: r.observedAt,
-            tier: data.provenance && data.provenance.sensors && data.provenance.sensors.tier,
+            tier: evidence && evidence.tier,
           },
           geometry: { type: "Point", coordinates: [r.lng, r.lat] },
         };
       }).filter(Boolean),
     });
   }
-  const sensorNote = data.provenance && data.provenance.sensors && data.provenance.sensors.note;
-  setToggleLabel("atlas-sensor-label", data.sensorFreshness?.stale || sensorNote && /stale/i.test(sensorNote) ? "VNTT sensors · stale" : "VNTT sensors");
+  const stale = !data || sensorRows.some(function (r) { return r.stale || observationStale(r.observedAt, 6 * 3600000); });
+  setToggleLabel("atlas-sensor-label", !data ? "VNTT sensors · unavailable" : stale ? "VNTT sensors · stale" : "VNTT sensors · " + (evidence?.tier || "unverified"));
 
-  const busSrc = mapInstance.getSource("bus-stops-src");
+  const busSrc = mapInstance && mapInstance.getSource("bus-stops-src");
   if (busSrc) {
     busSrc.setData({
       type: "FeatureCollection",
-      features: (data.buses || []).map(function (p) {
+      features: (data ? data.buses : []).map(function (p) {
         if (!Number.isFinite(p.lng) || !Number.isFinite(p.lat)) return null;
         return {
           type: "Feature",
@@ -887,8 +992,9 @@ async function refreshLiveOverlay() {
       }).filter(Boolean),
     });
   }
-  const busTier = data.provenance && data.provenance.buses && data.provenance.buses.tier;
-  setToggleLabel("atlas-bus-label", busTier === "simulated" ? "Buses · simulated" : "Buses");
+  const busTier = data?.provenance?.buses?.tier || "unverified";
+  setToggleLabel("atlas-bus-label", data ? "Buses · " + busTier : "Buses · unavailable");
+  setToggleLabel("atlas-bus-status", data ? "Bus positions: " + busTier + ". Source: " + (data.provenance?.buses?.source || "unknown") + ". " + observationLabel(data.provenance?.buses?.observedAt || data.provenance?.buses?.fetchedAt) : "Bus feed unavailable; map positions are hidden.");
 }
 
 // ── Areas + flyTo + flyover ────────────────────────────────────────────────
@@ -901,7 +1007,7 @@ function renderAreaGrid() {
     tile.type = "button";
     tile.className = "atlas-area-tile";
     tile.dataset.areaId = area.id;
-    tile.setAttribute("role", "listitem");
+    tile.setAttribute("aria-pressed", "false");
     tile.setAttribute("aria-label", "Fly to " + area.name);
     tile.innerHTML =
       '<span class="atlas-area-tile-cat">' + escapeHtml(area.category || "city") + "</span>" +
@@ -915,10 +1021,11 @@ function renderAreaGrid() {
 function flyToArea(id, opts) {
   opts = opts || {};
   if (!areasDoc) return;
+  if (!mapInstance) { showToast("3D map unavailable; reference data is below."); return; }
   const area = areasDoc.areas.find(function (a) { return a.id === id; });
   if (!area) return;
   currentAreaId = id;
-  if (opts.instant) {
+  if (opts.instant || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     mapInstance.jumpTo({
       center: area.center,
       zoom: area.zoom || 14,
@@ -932,7 +1039,7 @@ function flyToArea(id, opts) {
       pitch: area.pitch || 50,
       bearing: area.bearing || 0,
       duration: 1800,
-      essential: true,
+      essential: false,
     });
   }
   if (opts.updateHash) {
@@ -944,11 +1051,12 @@ function flyToArea(id, opts) {
   }
   $$(".atlas-area-tile").forEach(function (b) {
     b.classList.toggle("atlas-area-tile--active", b.dataset.areaId === id);
+    b.setAttribute("aria-pressed", String(b.dataset.areaId === id));
   });
 }
 
 function startFlyover() {
-  if (!areasDoc || areasDoc.areas.length === 0) return;
+  if (!mapInstance || !areasDoc || areasDoc.areas.length === 0) return;
   stopFlyover();
   let idx = 0;
   flyoverTimer = setInterval(function () {
@@ -958,13 +1066,13 @@ function startFlyover() {
   }, 4500);
   showToast("Flyover started -- " + areasDoc.areas.length + " stops");
   const btn = document.getElementById("atlas-flyover-btn");
-  if (btn) btn.textContent = "Stop flyover";
+  if (btn) { btn.textContent = "Stop flyover"; btn.setAttribute("aria-pressed", "true"); }
 }
 function stopFlyover() {
   if (flyoverTimer) clearInterval(flyoverTimer);
   flyoverTimer = null;
   const btn = document.getElementById("atlas-flyover-btn");
-  if (btn) btn.textContent = "Start flyover";
+  if (btn) { btn.textContent = "Start flyover"; btn.setAttribute("aria-pressed", "false"); }
 }
 
 // ── Live sun ────────────────────────────────────────────────────────────────
@@ -1002,6 +1110,7 @@ function applySunLight() {
 // ── Idle orbit ─────────────────────────────────────────────────────────────
 // After 20 s untouched the camera turns slowly round the view, so a shared
 // link opened on a phone shows depth without a gesture. Any touch stops it.
+let orbitEnabled = false;
 let orbitIdleTimer = null;
 let orbiting = false;
 const ORBIT_DEG_PER_SEC = 2.5;
@@ -1012,7 +1121,7 @@ function orbitStep() {
 function armIdleOrbit() {
   clearTimeout(orbitIdleTimer);
   orbiting = false;
-  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!orbitEnabled || window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   orbitIdleTimer = setTimeout(function () {
     if (flyoverTimer || mapInstance.getZoom() < 12) return armIdleOrbit();
     orbiting = true;
@@ -1021,20 +1130,31 @@ function armIdleOrbit() {
 }
 
 // ── Inspect (click any building) ──────────────────────────────────────────
+function closeInspect() {
+  const panel = document.getElementById("atlas-inspect");
+  if (panel) panel.hidden = true;
+  if (inspectFeature && mapInstance) {
+    mapInstance.setFeatureState({ source: "hcmc-buildings-src", sourceLayer: "buildings", id: inspectFeature.id }, { selected: false });
+    inspectFeature = null;
+  }
+}
+
 function setupInspect() {
+  document.getElementById("atlas-inspect-close")?.addEventListener("click", closeInspect);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeInspect(); stopFlyover(); } });
   let hoveredFeature = null;
   mapInstance.on("mousemove", "hcmc-buildings", function (e) {
     if (!e.features || !e.features[0]) return;
     if (hoveredFeature && hoveredFeature.id !== e.features[0].id) {
-      mapInstance.setFeatureState({ source: "hcmc-buildings-src", id: hoveredFeature.id }, { hover: false });
+      mapInstance.setFeatureState({ source: "hcmc-buildings-src", sourceLayer: "buildings", id: hoveredFeature.id }, { hover: false });
     }
     hoveredFeature = e.features[0];
-    mapInstance.setFeatureState({ source: "hcmc-buildings-src", id: hoveredFeature.id }, { hover: true });
+    mapInstance.setFeatureState({ source: "hcmc-buildings-src", sourceLayer: "buildings", id: hoveredFeature.id }, { hover: true });
     mapInstance.getCanvas().style.cursor = "pointer";
   });
   mapInstance.on("mouseleave", "hcmc-buildings", function () {
     if (hoveredFeature) {
-      mapInstance.setFeatureState({ source: "hcmc-buildings-src", id: hoveredFeature.id }, { hover: false });
+      mapInstance.setFeatureState({ source: "hcmc-buildings-src", sourceLayer: "buildings", id: hoveredFeature.id }, { hover: false });
     }
     hoveredFeature = null;
     mapInstance.getCanvas().style.cursor = "";
@@ -1058,54 +1178,84 @@ function setupInspect() {
     propsEl.innerHTML =
       '<div class="atlas-inspect-row"><span>Type</span><strong>' + escapeHtml(bldg) + "</strong></div>" +
       '<div class="atlas-inspect-row"><span>Height</span><strong>' + escapeHtml(h ? h.toFixed(1) + " m" : "unknown") + "</strong></div>" +
-      (hs ? '<div class="atlas-inspect-row"><span>Height from</span><strong>' + escapeHtml(HEIGHT_SOURCE_LABEL[hs] || hs) + "</strong></div>" : "") +
+      ('<div class="atlas-inspect-row"><span>Height from</span><strong>' + escapeHtml(HEIGHT_SOURCE_LABEL[hs] || hs || "unknown") + "</strong></div>") +
       (props.name ? '<div class="atlas-inspect-row"><span>Name</span><strong>' + escapeHtml(props.name) + "</strong></div>" : "") +
-      '<div class="atlas-inspect-row"><span>Footprint</span><strong>' + escapeHtml(FOOTPRINT_SOURCE_LABEL[props.src] || props.src || "OpenStreetMap") + "</strong></div>";
+      '<div class="atlas-inspect-row"><span>Footprint</span><strong>' + escapeHtml(FOOTPRINT_SOURCE_LABEL[props.src] || props.src || "unknown") + "</strong></div>";
 
     if (hint) hint.style.display = "none";
     card.hidden = false;
     document.getElementById("atlas-inspect").hidden = false;
 
     if (inspectFeature) {
-      mapInstance.setFeatureState({ source: "hcmc-buildings-src", id: inspectFeature.id }, { selected: false });
+      mapInstance.setFeatureState({ source: "hcmc-buildings-src", sourceLayer: "buildings", id: inspectFeature.id }, { selected: false });
     }
     inspectFeature = f;
-    mapInstance.setFeatureState({ source: "hcmc-buildings-src", id: f.id }, { selected: true });
+    mapInstance.setFeatureState({ source: "hcmc-buildings-src", sourceLayer: "buildings", id: f.id }, { selected: true });
   });
 
+  mapInstance.on("click", "hcmc-landmarks-3d", function (e) {
+    const props = e.features?.[0]?.properties;
+    if (!props) return;
+    closeInspect();
+    document.getElementById("atlas-inspect-coords").textContent = "lat " + e.lngLat.lat.toFixed(4) + " · lng " + e.lngLat.lng.toFixed(4);
+    document.getElementById("atlas-inspect-props").innerHTML =
+      '<div class="atlas-inspect-row"><span>Name</span><strong>' + escapeHtml(props.name) + '</strong></div>' +
+      '<div class="atlas-inspect-row"><span>Part height</span><strong>' + escapeHtml(props.height) + ' m</strong></div>' +
+      '<div class="atlas-inspect-row"><span>Tier</span><strong>Curated reference model</strong></div>' +
+      '<div class="atlas-inspect-row"><span>Reference</span><strong>' + escapeHtml(props.source || "unknown") + '</strong></div>' +
+      '<div class="atlas-inspect-row"><span>Footprint</span><strong>OpenStreetMap ' + escapeHtml(props.osm) + '</strong></div>';
+    document.getElementById("atlas-inspect-hint").style.display = "none";
+    document.getElementById("atlas-inspect-card").hidden = false;
+    document.getElementById("atlas-inspect").hidden = false;
+  });
   mapInstance.on("click", function (e) {
-    const hits = mapInstance.queryRenderedFeatures(e.point, { layers: ["hcmc-buildings"] });
-    if (hits && hits.length) return;
-    const card = document.getElementById("atlas-inspect-card");
-    if (card) card.hidden = true;
-    document.getElementById("atlas-inspect").hidden = true;
-    if (inspectFeature) {
-      mapInstance.setFeatureState({ source: "hcmc-buildings-src", id: inspectFeature.id }, { selected: false });
-      inspectFeature = null;
-    }
+    const layers = ["hcmc-buildings", "hcmc-landmarks-3d"].filter(function (id) { return mapInstance.getLayer(id); });
+    const hits = layers.length ? mapInstance.queryRenderedFeatures(e.point, { layers: layers }) : [];
+    if (!hits.length) closeInspect();
   });
 }
 
 // ── Layer toggles + basemap ────────────────────────────────────────────────
+const LAYER_GROUPS = {
+  "hcmc-buildings": ["hcmc-buildings", "hcmc-buildings-outline"],
+  "metro-stations": ["metro-stations", "metro-stations-label"],
+  "hcmc-landmarks-3d": ["hcmc-landmarks-3d", "hcmc-landmarks-outline", "hcmc-landmarks-label"],
+  "civic-pois": ["civic-pois", "civic-pois-label"],
+  "flood-zones": ["flood-zones", "flood-zones-outline", "flood-zones-label"],
+  "aqi-points": ["aqi-points", "aqi-labels"],
+};
+const layerVisibility = {};
+function setLayerVisible(layerId, visible) {
+  if (!mapInstance) return;
+  layerVisibility[layerId] = visible;
+  (LAYER_GROUPS[layerId] || [layerId]).forEach(function (id) {
+    if (mapInstance.getLayer(id)) mapInstance.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+  });
+  $$("[data-layer-toggle]").forEach(function (btn) {
+    if (btn.dataset.layerToggle !== layerId) return;
+    btn.classList.toggle("atlas-toggle--on", visible);
+    btn.setAttribute("aria-pressed", String(visible));
+  });
+}
 function setupLayerToggles() {
   $$("[data-layer-toggle]").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      const layerId = btn.dataset.layerToggle;
-      if (!mapInstance.getLayer(layerId)) return;
-      const visible = mapInstance.getLayoutProperty(layerId, "visibility") !== "none";
-      mapInstance.setLayoutProperty(layerId, "visibility", visible ? "none" : "visible");
-      btn.classList.toggle("atlas-toggle--on", !visible);
+      const id = btn.dataset.layerToggle;
+      if (!mapInstance.getLayer(id)) { showToast("This layer is unavailable. See Data & sources."); return; }
+      setLayerVisible(id, mapInstance.getLayoutProperty(id, "visibility") === "none");
     });
   });
 }
 
 function setBasemap(name) {
+  if (!mapInstance || name !== "esri") return;
   currentBasemap = name;
   // Simple basemap toggle: hide Esri when openfreemap is selected.
   const esriVisible = name === "esri" ? "visible" : "none";
   mapInstance.setLayoutProperty("esri-imagery", "visibility", esriVisible);
   $$(".atlas-basemap-btn").forEach(function (b) {
     b.classList.toggle("atlas-basemap-btn--active", b.dataset.bas === name);
+    b.setAttribute("aria-pressed", String(b.dataset.bas === name));
   });
 }
 
@@ -1114,7 +1264,7 @@ function postMsg(type, payload) {
   try {
     if (window.parent && window.parent !== window) {
       window.parent.postMessage(
-        Object.assign({ type: "hcmc-atlas", source: "atlas" }, payload),
+        Object.assign({ type: "hcmc-atlas", event: type, source: "atlas" }, payload),
         parentTargetOrigin(),
       );
     }
@@ -1122,13 +1272,14 @@ function postMsg(type, payload) {
 }
 window.addEventListener("message", function (e) {
   if (PARENT_ORIGINS.indexOf(e.origin) === -1 && e.origin !== window.location.origin) return;
+  if (e.source !== window.parent || !mapInstance) return;
   const m = e.data;
   if (!m || typeof m !== "object") return;
   if (m.type === "atlas:flyTo" && m.areaId) flyToArea(m.areaId, { updateHash: false });
   else if (m.type === "atlas:flyover") (m.start ? startFlyover : stopFlyover)();
-  else if (m.type === "atlas:setBasemap" && (m.bas === "esri" || m.bas === "openfreemap")) setBasemap(m.bas);
+  else if (m.type === "atlas:setBasemap" && m.bas === "esri") setBasemap(m.bas);
   else if (m.type === "atlas:toggleLayer" && m.layerId && mapInstance.getLayer(m.layerId)) {
-    mapInstance.setLayoutProperty(m.layerId, "visibility", m.visible === false ? "none" : "visible");
+    setLayerVisible(m.layerId, m.visible !== false);
   }
 });
 
@@ -1140,11 +1291,15 @@ async function boot() {
     areasDoc = await r.json();
   } catch (e) {
     console.error("Failed to load areas", e);
-    showToast("Curated areas failed to load", 4000);
-    return;
+    showToast("Quick jump unavailable. You can still explore the map.", 4000);
+    areasDoc = { areas: [] };
   }
 
   renderAreaGrid();
+  if (!mapInstance) {
+    setToggleLabel("atlas-map-status", "3D map unavailable. Use the text data below or reload to retry.");
+    return;
+  }
   setupInspect();
 
   function onMapReady() {
@@ -1159,7 +1314,7 @@ async function boot() {
     const initial = params.get("area");
     if (initial) flyToArea(initial, { updateHash: false, instant: true });
     refreshLiveOverlay();
-    setInterval(refreshLiveOverlay, 30000);
+    refreshAirQuality();
     applySunLight();
     setInterval(applySunLight, 60000);
     mapInstance.on("moveend", function () { if (orbiting) orbitStep(); });
@@ -1213,4 +1368,19 @@ async function boot() {
   });
 }
 
-boot();
+boot().catch(function (e) {
+  console.warn("[atlas] startup failed:", e.message);
+  setToggleLabel("atlas-map-status", "Map startup failed. Reload to retry; use the text data below.");
+});
+refreshLiveOverlay();
+refreshAirQuality();
+loadReferenceText();
+setInterval(function () { refreshLiveOverlay(); refreshAirQuality(); }, 60000);
+document.getElementById("atlas-orbit-btn")?.addEventListener("click", function (e) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { showToast("Orbit paused for reduced motion."); return; }
+  orbitEnabled = !orbitEnabled;
+  e.currentTarget.setAttribute("aria-pressed", String(orbitEnabled));
+  e.currentTarget.textContent = orbitEnabled ? "Pause orbit" : "Enable orbit";
+  if (!orbitEnabled && mapInstance) mapInstance.stop();
+  armIdleOrbit();
+});

@@ -13,12 +13,12 @@
     "verify": "node scripts/verify-local.mjs",
     "smoke": "node scripts/smoke-atlas.mjs",
     "smoke:api": "node scripts/smoke-atlas-api.mjs",
-    "test": "node scripts/test-sensor-freshness.mjs"
+    "test": "node scripts/test-sensor-freshness.mjs && node scripts/test-release-contract.mjs && node scripts/test-client-contract.mjs && node scripts/test-theme-contract.mjs"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260702.1",
+    "@cloudflare/workers-types": "^5.20261002.1",
     "typescript": "5.9.3",
-    "wrangler": "4.92.0"
+    "wrangler": "^4.147.0"
   },
   "dependencies": {
     "pmtiles": "^4.4.1"

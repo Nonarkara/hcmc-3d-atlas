@@ -32,14 +32,17 @@ try {
 
 const app = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
 assert.equal(app.includes('/api/hcmc/vntt-sensors'), false, 'no second sensor writer');
+const observationHelpers = app.slice(app.indexOf('function observationStale('), app.indexOf('function evidenceCell('));
 const refresh = app.slice(app.indexOf('async function refreshLiveOverlay()'), app.indexOf('// ── Areas + flyTo'));
 let geojson, label;
 const context = vm.createContext({
-  fetchLive: async () => ({ sensors: [{ id: 'old', status: 'normal', stale: true, lng: 106.7, lat: 10.78 }, { id: 'bad', lng: null, lat: 10.78 }], sensorFreshness: { stale: true } }),
+  fetchLive: async () => ({ sensors: [{ id: 'old', status: 'normal', stale: true, lng: 106.7, lat: 10.78 }, { id: 'bad', lng: null, lat: 10.78 }], buses: [], sensorFreshness: { stale: true } }),
   mapInstance: { getSource: id => id === 'live-sensors-src' ? { setData: data => { geojson = data; } } : null },
+  liveSensors: {},
+  renderSensorTable: () => {},
   setToggleLabel: (id, text) => { if (id === 'atlas-sensor-label') label = text; },
 });
-await vm.runInContext(refresh + '\nrefreshLiveOverlay()', context);
+await vm.runInContext(observationHelpers + refresh + '\nrefreshLiveOverlay()', context);
 assert.equal(geojson.features.length, 1);
 assert.equal(geojson.features[0].properties.status, 'stale');
 assert.equal(label, 'VNTT sensors · stale');

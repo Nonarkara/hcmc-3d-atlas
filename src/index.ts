@@ -110,6 +110,14 @@ function parseRange(header: string | null):
 }
 
 async function servePmtilesFromR2(request: Request, env: Env, key: string): Promise<Response> {
+  if (request.method === "HEAD") {
+    const head = await env.HCMC_TILES.head(key);
+    if (!head) return new Response("not found", { status: 404 });
+    const headers = new Headers({ "content-type": "application/octet-stream", "accept-ranges": "bytes", "content-length": String(head.size), "cache-control": "public, max-age=31536000, immutable" });
+    if (head.httpEtag) headers.set("etag", head.httpEtag);
+    applyTileCors(headers);
+    return new Response(null, { headers });
+  }
   const range = parseRange(request.headers.get("range"));
   if (range && "suffix" in range && range.suffix) {
     const head = await env.HCMC_TILES.head(key);
@@ -175,10 +183,22 @@ async function streamRange(env: Env, key: string, offset: number, length: number
 
 // ── HCMC harness ──────────────────────────────────────────────────────────
 
+function parseBbox(text: string): [number, number, number, number] | null {
+  const values = text.split(",");
+  if (values.length !== 4 || values.some((v) => !v.trim())) return null;
+  const parts = values.map(Number);
+  if (!parts.every(Number.isFinite)) return null;
+  const [w, south, e, n] = parts;
+  if (w >= e || south >= n || w < -180 || e > 180 || south < -90 || n > 90) return null;
+  return parts as [number, number, number, number];
+}
+
 function parseHcmcLngLat(request: Request): { lng: number; lat: number } | Response {
   const url = new URL(request.url);
-  const lng = Number.parseFloat(url.searchParams.get("lng") ?? "");
-  const lat = Number.parseFloat(url.searchParams.get("lat") ?? "");
+  const lngText = url.searchParams.get("lng")?.trim();
+  const latText = url.searchParams.get("lat")?.trim();
+  const lng = lngText ? Number(lngText) : NaN;
+  const lat = latText ? Number(latText) : NaN;
   if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
     return jsonResponse(
       {
@@ -268,6 +288,7 @@ interface SensorReading {
 }
 
 interface SensorRow {
+  type?: string;
   name?: string;
   nameVi?: string;
   unit?: string;
@@ -362,7 +383,8 @@ async function fetchHcmcJson<T>(path: string, ttlSeconds = 60): Promise<T | null
 
 function sensorRows(feed: SensorFeed | null): SensorRow[] {
   if (!feed) return [];
-  return feed.sensors ?? feed.readings ?? [];
+  const rows = feed.sensors ?? feed.readings;
+  return Array.isArray(rows) ? rows.filter((row) => row && typeof row === "object") : [];
 }
 
 function sensorStatus(row: SensorRow): string {
@@ -388,12 +410,12 @@ function sensorObservedAt(feed: SensorFeed | null, rows: SensorRow[]): string | 
 }
 
 function sensorFeedStale(feed: SensorFeed | null, rows: SensorRow[]): boolean {
-  if (!feed) return true;
+  if (!feed || rows.length === 0) return true;
   if (/stale/i.test(feed.provenance?.note ?? "")) return true;
   const observed = sensorObservedAt(feed, rows);
   const t = observed ? Date.parse(observed) : Number.NaN;
   if (!Number.isFinite(t)) return true;
-  return Date.now() - t > 6 * 60 * 60 * 1000;
+  return t > Date.now() + 5 * 60 * 1000 || Date.now() - t > 6 * 60 * 60 * 1000;
 }
 
 function vehicleLng(row: Record<string, unknown>): number {
@@ -407,13 +429,13 @@ function vehicleLat(row: Record<string, unknown>): number {
 
 function vehicleRows(feed: VehicleFeed | null, kind: "metro" | "bus"): Array<Record<string, unknown>> {
   if (!feed) return [];
-  if (kind === "metro") return feed.trains ?? [];
-  return feed.positions ?? feed.buses ?? [];
+  const rows = kind === "metro" ? feed.trains : feed.positions ?? feed.buses;
+  return Array.isArray(rows) ? rows.filter((row) => row && typeof row === "object") : [];
 }
 
 interface RiskReport {
-  score: number;
-  band: "high" | "elevated" | "low";
+  score: number | null;
+  band: "high" | "elevated" | "low" | "unavailable";
   factors: Record<string, unknown>;
   weather: {
     condition: string;
@@ -434,6 +456,11 @@ interface RiskReport {
   omitted: string[];
 }
 
+function validObservation(stamp: string | null | undefined, maxAgeMs: number): boolean {
+  const time = stamp ? Date.parse(stamp) : NaN;
+  return Number.isFinite(time) && time <= Date.now() + 5 * 60000 && Date.now() - time <= maxAgeMs;
+}
+
 function riskBand(score: number): RiskReport["band"] {
   if (score >= 70) return "high";
   if (score >= 40) return "elevated";
@@ -451,8 +478,9 @@ async function assessRisk(lng: number, lat: number, pm25Override: number | null)
   if (Array.isArray(stations)) {
     let bestD = Infinity;
     for (const s of stations) {
-      const slng = Number(s.lng);
-      const slat = Number(s.lat);
+      if (!s || typeof s !== "object") continue;
+      const slng = typeof s.lng === "number" ? s.lng : NaN;
+      const slat = typeof s.lat === "number" ? s.lat : NaN;
       if (!Number.isFinite(slng) || !Number.isFinite(slat)) continue;
       const d = (slng - lng) ** 2 + (slat - lat) ** 2;
       if (d < bestD) {
@@ -465,31 +493,43 @@ async function assessRisk(lng: number, lat: number, pm25Override: number | null)
   const overridden = pm25Override != null && Number.isFinite(pm25Override);
   const pm25 = overridden
     ? Math.min(500, Math.max(0, pm25Override as number))
-    : (typeof station?.pm25 === "number" && Number.isFinite(station.pm25) ? station.pm25 : null);
+    : (typeof station?.pm25 === "number" && station.pm25 >= 0 && Number.isFinite(station.pm25) && validObservation(station.observedAt, 3 * 3600000) ? station.pm25 : null);
   const aqiFactor = pm25 == null ? 0 : Math.min(1, Math.max(0, (pm25 - 12) / 138));
 
   const rows = sensorRows(sensors);
   const stale = sensorFeedStale(sensors, rows);
-  const alertCount = rows.filter((r) => sensorStatus(r) === "alert").length;
-  const warningCount = rows.filter((r) => sensorStatus(r) === "warning").length;
-  const floodFactor = stale ? null : Math.min(1, alertCount / 6);
-  const rainMm = typeof weather?.rainfallMm === "number" && Number.isFinite(weather.rainfallMm)
+  const freshRows = rows.filter((r) => {
+    const t = r.latestReading?.observedAt ? Date.parse(r.latestReading.observedAt) : NaN;
+    return Number.isFinite(t) && t <= Date.now() + 5 * 60000 && Date.now() - t <= 6 * 3600000;
+  });
+  const waterRows = freshRows.filter((r) => r.type === "water_level");
+  const alertCount = waterRows.filter((r) => sensorStatus(r) === "alert").length;
+  const warningCount = waterRows.filter((r) => sensorStatus(r) === "warning").length;
+  const floodFactor = stale || waterRows.length === 0 ? null : Math.min(1, alertCount / 6);
+  const weatherObservedAt = weather?.sourceSummary?.freshness?.observedAt ?? weather?.provenance?.observedAt;
+  const weatherFresh = validObservation(weatherObservedAt, 3 * 3600000);
+  const rainMm = weatherFresh && typeof weather?.rainfallMm === "number" && Number.isFinite(weather.rainfallMm)
     ? weather.rainfallMm
     : null;
   // 50 mm saturates the water term. Used only when the sensor feed is too old to count.
   const rainFactor = rainMm == null ? null : Math.min(1, Math.max(0, rainMm) / 50);
   const waterFactor = floodFactor ?? rainFactor ?? 0;
   const waterFrom = floodFactor != null ? "sensors" : rainFactor != null ? "rainfall" : "none";
-  const windKph = typeof weather?.windKph === "number" && Number.isFinite(weather.windKph)
+  const windKph = weatherFresh && typeof weather?.windKph === "number" && Number.isFinite(weather.windKph)
     ? weather.windKph
     : null;
   const windFactor = (windKph ?? 0) >= 25 ? 0.4 : 0;
-  const omitted = waterFrom === "none" ? ["flood"] : [];
-  const score = Math.round(100 * (0.45 * waterFactor + 0.4 * aqiFactor + 0.15 * windFactor));
+  const omitted = [
+    ...(waterFrom === "none" ? ["flood"] : []),
+    ...(pm25 == null ? ["pm25"] : []),
+    ...(windKph == null ? ["wind"] : []),
+  ];
+  // A low score with missing inputs falsely suggests safe conditions.
+  const score = omitted.length ? null : Math.round(100 * (0.45 * waterFactor + 0.4 * aqiFactor + 0.15 * windFactor));
 
   return {
     score,
-    band: riskBand(score),
+    band: score == null ? "unavailable" : riskBand(score),
     omitted,
     factors: {
       floodAlerts: alertCount,
@@ -501,16 +541,18 @@ async function assessRisk(lng: number, lat: number, pm25Override: number | null)
       pm25,
       pm25Overridden: overridden,
       pm25Station: station?.label ?? null,
-      pm25ObservedAt: station?.observedAt ?? station?.provenance?.fetchedAt ?? null,
+      pm25ObservedAt: station?.observedAt ?? null,
       pm25Tier: overridden ? "query-override" : (station?.provenance?.tier ?? null),
-      pm25Source: station?.provenance?.source ?? null,
+      pm25Source: overridden ? "query parameter" : station?.provenance?.source ?? null,
       aqiFactor: Math.round(aqiFactor * 100) / 100,
       windFactor,
       windKph,
+      weatherObservedAt: weatherObservedAt ?? null,
+      weatherFresh,
     },
     weather: {
       condition: weather?.condition ?? "unknown",
-      rainfallMm: weather?.rainfallMm ?? null,
+      rainfallMm: rainMm,
       windKph,
       mode: weather?.sourceSummary?.mode ?? "unknown",
       status: weather?.status ?? null,
@@ -539,12 +581,11 @@ async function handleAreas(request: Request, env: Env): Promise<Response> {
   const category = url.searchParams.get("category");
   let areas = doc.areas;
   if (category) areas = areas.filter((a) => a.category === category);
-  if (bboxParam) {
-    const parts = bboxParam.split(",").map(Number);
-    if (parts.length === 4 && parts.every(Number.isFinite)) {
-      const [w, s, e, n] = parts;
-      areas = areas.filter((a) => a.center[0] >= w && a.center[0] <= e && a.center[1] >= s && a.center[1] <= n);
-    }
+  if (bboxParam !== null) {
+    const parts = parseBbox(bboxParam);
+    if (!parts) return jsonResponse({ error: "invalid_bbox", message: "Use west,south,east,north with increasing WGS84 bounds." }, { status: 400 });
+    const [w, south, e, n] = parts;
+    areas = areas.filter((a) => a.center[0] >= w && a.center[0] <= e && a.center[1] >= south && a.center[1] <= n);
   }
   return jsonResponse({
     tool: "atlas.areas",
@@ -601,8 +642,9 @@ async function handleDistricts(): Promise<Response> {
     districts,
     source: {
       name: "curated static list in the worker",
-      tier: "static",
-      note: "District names and rounded figures. Not a live General Statistics Office pull.",
+      tier: "unverified-reference",
+      observedAt: null,
+      note: "Legacy place-name references, not current administrative boundaries. Rounded area and population figures have no verified source date and must not be used as official statistics.",
     },
   });
 }
@@ -714,6 +756,7 @@ async function handleTransit(request: Request): Promise<Response> {
 async function handleBuildings(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const bboxParam = url.searchParams.get("bbox");
+  if (bboxParam !== null && !parseBbox(bboxParam)) return jsonResponse({ error: "invalid_bbox" }, { status: 400 });
   const limitParam = Number.parseInt(url.searchParams.get("limit") ?? "1000", 10);
   const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 5000) : 1000;
   const head = await env.HCMC_TILES.head(PMTILES_R2_KEY).catch(() => null);
@@ -795,7 +838,7 @@ async function handleCityEvents(): Promise<Response> {
     }>;
   }>("/api/disaster/brief");
 
-  const incidents = disaster?.incidents ?? [];
+  const incidents = Array.isArray(disaster?.incidents) ? disaster.incidents.filter((i) => i && typeof i === "object") : [];
   const inBbox = (lng?: number, lat?: number) =>
     lng != null && lat != null &&
     lng >= HCMC_BBOX.minLon && lng <= HCMC_BBOX.maxLon &&
@@ -824,7 +867,7 @@ async function handleCityEvents(): Promise<Response> {
     ttlMinutes: 60,
     features: { type: "FeatureCollection", features },
     fetchedAt: disaster?.generatedAt ?? new Date().toISOString(),
-    ingestWarning: incidents.length === 0 ? "No breaking incidents in the HCMC bbox right now." : undefined,
+    ingestWarning: !disaster ? "Incident feed unavailable; an empty result does not mean there are no incidents." : features.length === 0 ? "No geolocated incidents supplied in this atlas bbox; coverage is incomplete." : undefined,
   });
 }
 
@@ -848,7 +891,7 @@ async function handleRisk(request: Request): Promise<Response> {
     factors: risk.factors,
     sensors: risk.sensors,
     disclaimer:
-      "Civic demo score. Water is rainfall while the sensor feed is stale, otherwise flood alerts. PM2.5 is the nearest station. Not for insurance underwriting or official planning.",
+      "Experimental demo score, not a safety assessment. Missing components yield no score. Water uses fresh water-level alerts or rainfall; PM2.5 is the nearest modeled sample, not necessarily a sensor station.",
   }, { headers: { "cache-control": `public, max-age=${RISK_CACHE_TTL_SECONDS}` } });
 }
 
@@ -891,6 +934,7 @@ async function handleTraffic(): Promise<Response> {
       unit: row.unit ?? null,
       stale: feedStale || !row.latestReading?.observedAt
         || !Number.isFinite(Date.parse(row.latestReading.observedAt))
+        || Date.parse(row.latestReading.observedAt) > Date.now() + 5 * 60000
         || Date.now() - Date.parse(row.latestReading.observedAt) > 6 * 60 * 60 * 1000,
       status: sensorStatus(row),
       observedAt: row.latestReading?.observedAt ?? null,
@@ -909,6 +953,16 @@ async function handleTraffic(): Promise<Response> {
   }, { headers: { "cache-control": `public, max-age=${SENSOR_CACHE_TTL_SECONDS}` } });
 }
 
+async function handleAirQuality(): Promise<Response> {
+  const data = await fetchHcmcJson<AqiStation[]>("/api/air-quality", 300);
+  if (!Array.isArray(data)) return jsonResponse({ error: "air_quality_unavailable" }, { status: 503 });
+  const points = data.filter((p) => p && typeof p === "object" && Number.isFinite(p.lng) && Number.isFinite(p.lat)
+    && p.lng! >= HCMC_BBOX.minLon && p.lng! <= HCMC_BBOX.maxLon && p.lat! >= HCMC_BBOX.minLat && p.lat! <= HCMC_BBOX.maxLat
+    && typeof p.aqi === "number" && p.aqi >= 0 && Number.isFinite(p.aqi));
+  if (!points.length) return jsonResponse({ error: "air_quality_unavailable" }, { status: 503 });
+  return jsonResponse(points, { headers: { "cache-control": "public, max-age=300" } });
+}
+
 // ── /api/health — quick liveness probe ────────────────────────────────────
 
 async function handleHealth(env: Env): Promise<Response> {
@@ -916,19 +970,35 @@ async function handleHealth(env: Env): Promise<Response> {
   return jsonResponse({
     tool: "health",
     version: ATLAS_VERSION,
-    ok: true,
+    ok: head !== null,
     pmtiles: head
       ? { available: true, sizeMb: head.size / (1024 * 1024) }
       : { available: false, sizeMb: null },
     bbox: HCMC_BBOX,
-    uptime: Date.now(),
-  });
+    checkedAt: new Date().toISOString(),
+  }, { status: head ? 200 : 503, headers: { "cache-control": "no-store" } });
 }
 
 // ── Router ────────────────────────────────────────────────────────────────
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const response = await routeRequest(request, env, ctx);
+    const headers = new Headers(response.headers);
+    headers.set("x-content-type-options", "nosniff");
+    headers.set("referrer-policy", "strict-origin-when-cross-origin");
+    headers.set("permissions-policy", "camera=(), microphone=(), geolocation=()");
+    headers.set("content-security-policy", "default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; connect-src 'self' https://services.arcgisonline.com https://demotiles.maplibre.org; img-src 'self' data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'self' https://hcmc.nonarkara.org");
+    return new Response(request.method === "HEAD" ? null : response.body, { status: response.status, statusText: response.statusText, headers });
+  },
+
+  // Warm the upstream cache the API routes actually read.
+  async scheduled(_event: ScheduledEvent, _env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(Promise.all(UPSTREAM_PATHS.map((path) => fetchHcmcJson(path, 60))).then(() => undefined));
+  },
+};
+
+async function routeRequest(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -964,6 +1034,7 @@ export default {
     if (path === HERITAGE_PMTILES_PATH) return servePmtilesFromR2(request, env, HERITAGE_PMTILES_R2_KEY);
 
     // Atlas AI-mirror
+    if (path === "/api/atlas/air-quality") return handleAirQuality();
     if (path === "/api/atlas/areas") return handleAreas(request, env);
     if (path === "/api/atlas/corridors") return handleCorridors(request, env);
     if (path === "/api/atlas/districts") return handleDistricts();
@@ -983,11 +1054,5 @@ export default {
     const headers = new Headers(asset.headers);
     headers.set("access-control-allow-origin", "*");
     return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
-  },
 
-  // Warm the upstream cache the API routes actually read. The in-isolate
-  // object this used to call never stored anything, so the cron was a no-op.
-  async scheduled(_event: ScheduledEvent, _env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(Promise.all(UPSTREAM_PATHS.map((path) => fetchHcmcJson(path, 60))).then(() => undefined));
-  },
-};
+}

@@ -68,7 +68,7 @@ async function get(path) {
   // 9: Risk — score 0-100
   {
     const r = await get("/api/risk?lng=106.65&lat=10.78");
-    check("/api/risk returns score in range", r.status === 200 && Number.isFinite(r.body?.score) && r.body.score >= 0 && r.body.score <= 100, `${r.status} score=${r.body?.score}`);
+    check("/api/risk returns bounded score or explicit missing inputs", r.status === 200 && (Number.isFinite(r.body?.score) && r.body.score >= 0 && r.body.score <= 100 || r.body?.score === null && r.body?.band === "unavailable" && r.body?.omitted?.length > 0), `${r.status} score=${r.body?.score}`);
     check("/api/risk reads pm25, not an empty object", Number.isFinite(r.body?.factors?.pm25), `pm25=${r.body?.factors?.pm25}`);
   }
   {

@@ -24,8 +24,10 @@ const stamp = `hcmc-atlas-${now.getUTCFullYear()}${String(now.getUTCMonth() + 1)
 
 const html = readFileSync(indexHtml, "utf8");
 const nextHtml = html
+  .replace(/src="\/loader\.js(?:\?v=[^"]*)?"/g, `src="/loader.js?v=${stamp}"`)
   .replace(/href="\/style\.css\?v=[^"]*"/g, `href="/style.css?v=${stamp}"`)
-  .replace(/src="\/app\.js\?v=[^"]*"/g, `src="/app.js?v=${stamp}"`);
+  .replace(/src="\/theme\.js\?v=[^"]*"/g, `src="/theme.js?v=${stamp}"`)
+  .replace(/data-app="\/app\.js\?v=[^"]*"/g, `data-app="/app.js?v=${stamp}"`);
 
 writeFileSync(indexHtml, nextHtml, "utf8");
 
